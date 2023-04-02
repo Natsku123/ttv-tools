@@ -1,0 +1,4 @@
+celery
+nextcord
+nextcord-ext-ipc
+Redis

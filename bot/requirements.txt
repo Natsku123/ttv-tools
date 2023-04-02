@@ -1,0 +1,4 @@
+nextcord
+nextcord-ext-ipc
+requests
+pydantic
