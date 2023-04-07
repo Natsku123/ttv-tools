@@ -1,4 +1,4 @@
 celery
 nextcord
 nextcord-ext-ipc
-Redis
+redis[hiredis]

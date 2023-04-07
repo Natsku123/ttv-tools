@@ -567,7 +567,3 @@ def get_model_by_subscription_type(subscription_type: str, data: dict) -> BaseMo
             model = UserUpdateEvent
 
     return model(**data)
-
-
-class TwitchMessageId(SQLModel, ObjectMixin, table=True):
-    message_id: str = Field()

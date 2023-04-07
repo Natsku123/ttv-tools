@@ -1,6 +1,7 @@
 import os
 import asyncio
 import uuid
+import redis
 
 import requests
 from celery import Celery
@@ -16,11 +17,13 @@ from core.database.models.eventsubs import EventSubscription
 from core.database.crud.eventsubs import crud as eventsub_crud
 from core.database.crud.user import crud as user_crud
 from core.database.crud.server import crud as server_crud
-from core.database import engine, timezoned
+from core.database import engine
 
 app = Celery(__name__)
 app.conf.broker_url = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379")
 app.conf.result_backend = os.environ.get("CELERY_RESULT_BACKEND", "redis://redis:6379")
+
+TWITCH_MESSAGE_ID_SET_KEY = "twitchmessageids"
 
 
 def get_twitch_access_token() -> str:
@@ -42,27 +45,6 @@ def setup_periodic_tasks(sender, **kwargs):
         crontab(hour="6,18"),
         update_users.s(update_all=True),
     )
-
-    # Remove old message ids twice a day
-    sender.add_periodic_task(
-        crontab(hour="0,12"),
-        remove_old_message_ids.s(),
-    )
-
-
-@app.task
-def remove_old_message_ids():
-    with Session(engine) as session:
-
-        # Get messages older than 12 hours
-        now = timezoned()
-        timelimit = now - datetime.timedelta(hours=12)
-
-        rm_list = session.exec(select(TwitchMessageId).where(TwitchMessageId.created_on < timelimit)).all()
-
-        # Delete found messages
-        for message in rm_list:
-            session.delete(message)
 
 
 @app.task
@@ -126,20 +108,16 @@ def process_notification(message_id: str, data: dict):
 
     data = TwitchEvent.parse_obj(data)
 
+    r = redis.Redis(host="redis", port=6379, decode_responses=True)
+
+    # Add message id to already processed set and check if it already exists
+    result = r.sadd(TWITCH_MESSAGE_ID_SET_KEY, message_id)
+
+    # Stop handling as message id already in set
+    if result == 0:
+        return
+
     with Session(engine) as session:
-
-        # Check if message id is already processed
-        message_ids = session.exec(select(TwitchMessageId).where(TwitchMessageId.message_id == message_id)).all()
-
-        # Stop processing if message id exists
-        if len(message_ids) > 0:
-            return
-
-        # Add message id to database, so it won't be processed again
-        else:
-            message = TwitchMessageId(**{"message_id": message_id})
-            session.add(message)
-            session.commit()
 
         if hasattr(data, "broadcaster_user_id"):
             user = user_crud.get_by_twitch_id(session, data.broadcaster_user_id)

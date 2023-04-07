@@ -8,4 +8,4 @@ requests
 psycopg2-binary
 nextcord
 nextcord-ext-ipc
-Redis
+redis[hiredis]

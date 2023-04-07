@@ -29,14 +29,6 @@ def upgrade():
     sa.UniqueConstraint('discord_id')
     )
     op.create_index(op.f('ix_server_uuid'), 'server', ['uuid'], unique=False)
-    op.create_table('twitchmessageid',
-    sa.Column('uuid', sqlmodel.sql.sqltypes.GUID(), nullable=False),
-    sa.Column('created_on', sa.DateTime(), nullable=False),
-    sa.Column('updated_on', sa.DateTime(), nullable=True),
-    sa.Column('message_id', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-    sa.PrimaryKeyConstraint('uuid')
-    )
-    op.create_index(op.f('ix_twitchmessageid_uuid'), 'twitchmessageid', ['uuid'], unique=False)
     op.create_table('user',
     sa.Column('discord_id', sa.String(length=64), nullable=True),
     sa.Column('twitch_id', sa.String(length=64), nullable=False),
@@ -92,8 +84,6 @@ def downgrade():
     op.drop_table('eventsubscription')
     op.drop_index(op.f('ix_user_uuid'), table_name='user')
     op.drop_table('user')
-    op.drop_index(op.f('ix_twitchmessageid_uuid'), table_name='twitchmessageid')
-    op.drop_table('twitchmessageid')
     op.drop_index(op.f('ix_server_uuid'), table_name='server')
     op.drop_table('server')
     # ### end Alembic commands ###
