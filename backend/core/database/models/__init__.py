@@ -12,6 +12,11 @@ class ObjectMixin(BaseModel):
     updated_on: datetime.datetime | None = Field(nullable=True)
 
 
+class LinkObjectMixin(BaseModel):
+    created_on: datetime.datetime = Field(default_factory=timezoned)
+    updated_on: datetime.datetime | None = Field(nullable=True)
+
+
 class Meta(SQLModel):
     version: str | None
     build: str | None

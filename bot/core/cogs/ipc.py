@@ -1,5 +1,5 @@
-from bot.core import CustomBot
-from bot.core.embeds import get_notification_embed
+from core import CustomBot
+from core.embeds import get_notification_embed
 from nextcord.ext import commands, ipc
 
 

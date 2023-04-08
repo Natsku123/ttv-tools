@@ -6,7 +6,10 @@ from core.database.models.all import (
     OAuth2Token,
     EventSubscription,
     Server,
-    TwitchMessageId,
+    Team,
+    User,
+    Membership,
+    TeamInvite
 )
 
 SQLALCHEMY_DATABASE_URL = "postgresql://{username}:{password}@{server}/{db}" \

@@ -12,7 +12,7 @@ from nextcord.ext import ipc
 
 from config import settings
 from core.database.models.twitch import *
-from core.database.models.user import UserUpdate
+from core.database.models.users import UserUpdate
 from core.database.models.eventsubs import EventSubscription
 from core.database.crud.eventsubs import crud as eventsub_crud
 from core.database.crud.user import crud as user_crud

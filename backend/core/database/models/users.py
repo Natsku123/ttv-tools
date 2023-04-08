@@ -1,6 +1,12 @@
-from sqlmodel import Field, SQLModel, Column, String
+import typing
+
+from sqlmodel import Field, SQLModel, Column, String, Relationship
 
 from core.database.models import ObjectMixin
+from core.database.models.memberships import Membership
+
+if typing.TYPE_CHECKING:
+    from core.database.models.teams import Team
 
 
 class User(SQLModel, ObjectMixin, table=True):
@@ -23,6 +29,9 @@ class User(SQLModel, ObjectMixin, table=True):
     icon_url: str | None = Field(None, description="Twitch icon url")
     offline_image_url: str | None = Field(None, description="Twitch offline image url")
     description: str | None = Field(None, description="Twitch description")
+    is_superadmin: bool | None = Field(False, description="Is user super admin")
+
+    teams: list["Team"] = Relationship(back_populates="user", link_model=Membership)
 
     class Config:
         orm_mode = True
@@ -53,6 +62,7 @@ class UserUpdate(SQLModel):
     icon_url: str | None = Field(None, description="Twitch icon url")
     offline_image_url: str | None = Field(None, description="Twitch offline image url")
     description: str | None = Field(None, description="Twitch description")
+    is_superadmin: bool | None = Field(False, description="Is user super admin")
 
     class Config:
         orm_mode = True

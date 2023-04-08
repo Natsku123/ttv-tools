@@ -2,7 +2,7 @@ from typing import Optional
 from sqlmodel import Session, select
 
 from core.database.crud import CRUDBase, ModelType
-from core.database.models.user import User, UserCreate, UserUpdate
+from core.database.models.users import User, UserCreate, UserUpdate
 
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):

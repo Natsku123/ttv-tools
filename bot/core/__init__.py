@@ -10,7 +10,8 @@ class CustomBot(commands.Bot):
 
         self.ipc = ipc.Server(self, host="0.0.0.0", port=settings.IPC_PORT, secret_key=settings.IPC_SECRET)
 
-        self.load_extension("ipc", package=".core.cogs")
+        self.load_extensions_from_module("core.cogs")
+        #self.load_extension(".ipc", package="core.cogs")
 
     async def on_ready(self):
         logger.info(f"\nLogged in as:\n{self.user} (ID: {self.user.id})")

@@ -13,7 +13,7 @@ from config import settings
 from core.database import SessionLocal
 from core.database.models import Meta
 from core.database.models.oauth import OAuth2Token
-from core.database.models.user import User
+from core.database.models.users import User
 
 from core.routes import twitch
 

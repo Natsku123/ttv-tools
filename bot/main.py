@@ -18,7 +18,7 @@ def main():
     signal.signal(signal.SIGTERM, handle_sigterm)
 
     bot.ipc.start()
-    bot.run(settings.TOKEN)
+    bot.run(settings.BOT_TOKEN)
 
 
 if __name__ == "__main__":

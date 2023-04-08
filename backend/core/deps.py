@@ -3,7 +3,7 @@ from sqlmodel import Session
 
 from core.database import engine
 from core.database.crud.user import crud
-from core.database.models.user import User
+from core.database.models.users import User
 
 
 def get_db():
