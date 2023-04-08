@@ -15,7 +15,7 @@ from core.database.models.twitch import *
 from core.database.models.users import UserUpdate
 from core.database.models.eventsubs import EventSubscription
 from core.database.crud.eventsubs import crud as eventsub_crud
-from core.database.crud.user import crud as user_crud
+from core.database.crud.users import crud as user_crud
 from core.database.crud.server import crud as server_crud
 from core.database import engine
 

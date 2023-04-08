@@ -15,7 +15,7 @@ from core.database.models import Meta
 from core.database.models.oauth import OAuth2Token
 from core.database.models.users import User
 
-from core.routes import twitch
+from core.routes import twitch, users
 
 from core.deps import get_current_user, get_db
 
@@ -334,3 +334,4 @@ def meta():
 
 
 app.include_router(twitch.router, prefix="/twitch")
+app.include_router(users.router, prefix="/users")

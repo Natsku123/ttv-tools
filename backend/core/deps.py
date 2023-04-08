@@ -2,7 +2,7 @@ from fastapi import Depends, HTTPException, Request
 from sqlmodel import Session
 
 from core.database import engine
-from core.database.crud.user import crud
+from core.database.crud.users import crud
 from core.database.models.users import User
 
 
