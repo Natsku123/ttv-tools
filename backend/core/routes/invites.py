@@ -87,12 +87,12 @@ def get_invite(*,
 
 @router.put("/{invite_uuid}", response_model=TeamInvite, tags=["invites"])
 def update_invite(*,
-                db: Session = Depends(get_db),
-                current_user: User = Depends(get_current_user),
-                invite_uuid: uuid.UUID = Path(..., description="UUID of invite"),
-                invite_update: TeamInviteUpdate = Body(...,
-                                                       description="Contents to be updated")
-                ):
+                  db: Session = Depends(get_db),
+                  current_user: User = Depends(get_current_user),
+                  invite_uuid: uuid.UUID = Path(..., description="UUID of invite"),
+                  invite_update: TeamInviteUpdate = Body(...,
+                                                         description="Contents to be updated")
+                  ):
     if not current_user:
         raise not_authorized()
 
@@ -109,9 +109,9 @@ def update_invite(*,
 
 @router.delete("/{invite_uuid}", response_model=TeamInvite, tags=["invites"])
 def delete_invite(*,
-                current_user: User = Depends(get_current_user),
-                db: Session = Depends(get_db),
-                invite_uuid: uuid.UUID = Path(..., description="UUID of invite")):
+                  current_user: User = Depends(get_current_user),
+                  db: Session = Depends(get_db),
+                  invite_uuid: uuid.UUID = Path(..., description="UUID of invite")):
     if not current_user:
         raise not_authorized()
 
@@ -127,7 +127,7 @@ def delete_invite(*,
     return db_invite
 
 
-@router.post("/{invite_uuid}", response_model=TeamInvite, tags=["invites"])
+@router.post("/{invite_uuid}/redeem", response_model=TeamInvite, tags=["invites"])
 def redeem_invite(*,
                   current_user: User = Depends(get_current_user),
                   db: Session = Depends(get_db),
