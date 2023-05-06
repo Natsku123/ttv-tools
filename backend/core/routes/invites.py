@@ -57,10 +57,10 @@ def create_invite(*,
     if not current_user:
         raise not_authorized()
 
-    if not current_user.is_superadmin:
-        raise forbidden()
+    _, db_mship = check_invite_permissions(db, current_user, invite)
 
-    check_invite_permissions(db, current_user, invite)
+    if not current_user.is_superadmin and not db_mship.allowed_invites:
+        raise forbidden()
 
     db_invite = invites.crud.create(db, obj_in=invite)
     return db_invite
@@ -122,7 +122,7 @@ def delete_invite(*,
 
     check_invite_permissions(db, current_user, db_invite)
 
-    invites.crud.remove(db, invite_uuid)
+    invites.crud.remove(db, uuid=invite_uuid)
 
     return db_invite
 
@@ -152,6 +152,6 @@ def redeem_invite(*,
 
     memberships.crud.create(db, obj_in=membership)
 
-    invites.crud.remove(db, invite_uuid)
+    invites.crud.remove(db, uuid=invite_uuid)
 
     return db_invite

@@ -14,7 +14,7 @@ class IpcRoutes(commands.Cog):
         embed.title = data.broadcaster_title
         embed.description = data.broadcaster_description
 
-        await self.bot.get_channel(data.discord_channel_id).send(embed=embed)
+        await self.bot.get_channel(data.channel_discord_id).send(embed=embed)
 
 
 def setup(bot):

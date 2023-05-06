@@ -34,5 +34,19 @@ class CRUDEventSubscription(CRUDBase[EventSubscription, EventSubscriptionCreate,
 
         return db.exec(q.offset(skip).limit(limit)).all()
 
+    def update_twitch_id(
+        self,
+        db: Session,
+        *,
+        db_obj: EventSubscription,
+        twitch_id: str
+    ) -> ModelType:
+        db_obj.twitch_id = twitch_id
+
+        db.add(db_obj)
+        db.commit()
+        db.refresh(db_obj)
+        return db_obj
+
 
 crud = CRUDEventSubscription(EventSubscription)

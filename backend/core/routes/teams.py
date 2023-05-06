@@ -136,7 +136,7 @@ def delete_team(*,
 
     check_adminship(db, current_user, team_uuid)
 
-    teams.crud.remove(db, team_uuid)
+    teams.crud.remove(db, uuid=team_uuid)
 
     return db_team
 

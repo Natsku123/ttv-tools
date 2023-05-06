@@ -3,9 +3,10 @@ import uuid
 from fastapi import APIRouter, Depends, Path, Body
 from sqlmodel import Session
 
+from core.database import Team
 from core.deps import get_db, get_current_user
 from core.database.models.users import User, UserUpdate
-from core.database.crud import users
+from core.database.crud import users, memberships
 
 from core.routes import not_authorized, not_found, forbidden
 
@@ -82,6 +83,17 @@ def delete_user(*,
     if not db_user:
         raise not_found("User")
 
-    users.crud.remove(db, user_uuid)
+    users.crud.remove(db, uuid=user_uuid)
 
     return db_user
+
+
+@router.get("/teams", response_model=list[Team], tags=["users"])
+def get_teams(*,
+              current_user: User = Depends(get_current_user),
+              db: Session = Depends(get_db)):
+    if not current_user:
+        raise not_authorized()
+
+    return memberships.crud.get_by_user_uuid(db, current_user.uuid)
+
