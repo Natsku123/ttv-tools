@@ -19,5 +19,11 @@ class CRUDMembership(CRUDBase[Membership, MembershipCreate, MembershipUpdate]):
             select(self.model).filter(self.model.user_uuid == user_uuid).filter(self.model.team_uuid == team_uuid)
         ).first()
 
+    def remove_by_team_user_uuid(self, db: Session, *, user_uuid: uuid.UUID, team_uuid: uuid.UUID) -> ModelType:
+        obj = self.get_by_team_user_uuid(db, user_uuid, team_uuid)
+        db.delete(obj)
+        db.commit()
+        return obj
+
 
 crud = CRUDMembership(Membership)
