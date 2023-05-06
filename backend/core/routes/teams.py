@@ -6,8 +6,10 @@ from sqlmodel import Session
 from core.deps import get_db, get_current_user
 from core.database.models.users import User
 from core.database.models.teams import Team, TeamUpdate, TeamCreate
+from core.database.models.invites import TeamInvite
 from core.database.crud import teams
 from core.database.crud import memberships
+from core.database.crud import invites
 
 from core.routes import not_authorized, not_found, forbidden
 
@@ -53,6 +55,28 @@ def get_team(*,
         raise not_found("Team")
 
     return team
+
+
+@router.get("/{team_uuid}/invites", response_model=list[TeamInvite], tags=["teams", "invites"])
+def get_invites_by_team(*,
+             db: Session = Depends(get_db),
+             current_user: User = Depends(get_current_user),
+             team_uuid: uuid.UUID = Path(..., description="UUID of team")
+             ):
+    if not current_user:
+        raise not_authorized()
+
+    mship = memberships.crud.get_by_team_user_uuid(db, current_user.uuid, team_uuid)
+
+    if not current_user.is_superadmin and (mship is None or not mship.is_admin):
+        raise forbidden()
+
+    team = teams.crud.get(db, team_uuid)
+
+    if not team:
+        raise not_found("Team")
+
+    return invites.crud.get_by_team_uuid(db, team_uuid)
 
 
 @router.put("/{team_uuid}", response_model=Team, tags=["teams"])
