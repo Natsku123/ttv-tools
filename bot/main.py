@@ -10,7 +10,12 @@ def main():
 
     logger.info("Starting bot...")
 
-    bot = get_bot()
+    intents = nextcord.Intents(
+        members=True,
+        guilds=True,
+        reactions=True
+    )
+    bot = get_bot(intents=intents)
 
     def handle_sigterm(sig, frame):
         raise KeyboardInterrupt

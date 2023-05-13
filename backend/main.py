@@ -1,4 +1,3 @@
-from authlib.common.urls import url_decode
 from fastapi import FastAPI, Depends, Request, HTTPException
 from fastapi.openapi.utils import get_openapi
 from fastapi.middleware.cors import CORSMiddleware
