@@ -13,7 +13,7 @@ class Team(SQLModel, ObjectMixin, table=True):
     name: str = Field(description="Name of team")
     description: str = Field(description="Description of team")
 
-    members: list["User"] = Relationship(back_populates="team", link_model=Membership)
+    members: list["User"] = Relationship(back_populates="teams", link_model=Membership)
 
     class Config:
         orm_mode = True

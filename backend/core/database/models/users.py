@@ -1,4 +1,6 @@
+import datetime
 import typing
+import uuid
 
 from sqlmodel import Field, SQLModel, Column, String, Relationship
 
@@ -31,7 +33,17 @@ class User(SQLModel, ObjectMixin, table=True):
     description: str | None = Field(None, description="Twitch description")
     is_superadmin: bool | None = Field(False, description="Is user super admin")
 
-    teams: list["Team"] = Relationship(back_populates="user", link_model=Membership)
+    teams: list["Team"] = Relationship(back_populates="members", link_model=Membership)
+
+    def jsonable(self) -> dict:
+        data: dict = self.dict()
+        dts = [k for k, v in data.items() if isinstance(v, datetime.datetime)]
+        ids = [k for k, v in data.items() if isinstance(v, uuid.UUID)]
+        for dt in dts:
+            data[dt] = data[dt].strftime("%Y-%m-%dT%H:%M:%S%z")
+        for i in ids:
+            data[i] = str(data[i])
+        return data
 
     class Config:
         orm_mode = True

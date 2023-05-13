@@ -27,7 +27,7 @@ TWITCH_MESSAGE_ID_SET_KEY = "twitchmessageids"
 
 
 def get_twitch_access_token() -> str:
-    token_res = requests.post("https://id.twitch.tv/oauth2/token", headers={
+    token_res = requests.post(f"{settings.TWITCH_ID_URL}/token", headers={
         "Content-Type": "application/x-www-form-urlencoded"
     }, params={
         "client_id": settings.TWITCH_CLIENT_ID,
@@ -77,7 +77,7 @@ def update_users(update_all: bool = False, token: str = None, user_uuids: list[u
         users_twitch_ids = list(set([x.twitch_id for x in users if x]))
 
         user_data = requests.get(
-            "https://api.twitch.tv/helix/users",
+            f"{settings.TWITCH_API_URL}/users",
             headers=twitch_headers,
             params={
                 "id": users_twitch_ids
@@ -386,7 +386,7 @@ def create_twitch_eventsub(eventsub: dict):
     }
 
     resp = requests.post(
-        "https://api.twitch.tv/helix/eventsub/subscriptions",
+        f"{settings.TWITCH_API_URL}/eventsub/subscriptions",
         headers=twitch_headers,
         json={
             "type": eventsub.event,
@@ -416,7 +416,7 @@ def delete_twitch_eventsub(eventsub: dict):
     }
 
     requests.delete(
-        f"https://api.twitch.tv/helix/eventsub/subscriptions?id={eventsub.twitch_id}",
+        f"{settings.TWITCH_API_URL}/eventsub/subscriptions?id={eventsub.twitch_id}",
         headers=twitch_headers,
     )
 

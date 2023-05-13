@@ -1,10 +1,12 @@
+from authlib.common.urls import url_decode
 from fastapi import FastAPI, Depends, Request, HTTPException
 from fastapi.openapi.utils import get_openapi
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
 from authlib.integrations.starlette_client import OAuth
-from authlib.integrations.base_client.errors import UnsupportedTokenTypeError
+from authlib.integrations.base_client.errors import UnsupportedTokenTypeError, \
+    OAuthError
 from starlette.responses import RedirectResponse
 
 from sqlmodel import Session
@@ -106,7 +108,7 @@ def fetch_discord_token(
 ):
     token = (
         db.query(OAuth2Token)
-        .filter_by(name="discord", user_uuid=current_user.uuid)
+        .filter_by(name="discord", user_id=current_user.uuid)
         .first()
     )
     if token:
@@ -119,7 +121,7 @@ def fetch_twitch_token(
 ):
     token = (
         db.query(OAuth2Token)
-        .filter_by(name="twitch", user_uuid=current_user.uuid)
+        .filter_by(name="twitch", user_id=current_user.uuid)
         .first()
     )
     if token:
@@ -140,20 +142,42 @@ oauth.register(
     fetch_token=fetch_discord_token,
 )
 
+
+def _fix_token_response(resp):
+    data = resp.json()
+    data["scope"] = " ".join(data["scope"])
+    resp.json = lambda: data
+    return resp
+#.register_compliance_hook(
+#    'access_token_response', _fix_token_response)
+
+
 # OAuth with twitch setup
-oauth.register(
+client = oauth.register(
     name="twitch",
     client_id=settings.TWITCH_CLIENT_ID,
     client_secret=settings.TWITCH_CLIENT_SECRET,
-    access_token_url="https://id.twitch.tv/oauth2/token",
-    access_token_params=None,
-    authorize_url="https://id.twitch.tv/oauth2/authorize",
-    authorize_params=None,
-    api_base_url="https://api.twitch.tv",
+    #access_token_url=f"{settings.TWITCH_ID_URL}/token",
+    #access_token_params={"client_id": settings.TWITCH_CLIENT_ID, "client_secret": settings.TWITCH_CLIENT_SECRET},
+    #access_token_params=None,
+    #authorize_url=f"{settings.TWITCH_ID_URL}/authorize",
+    #authorize_params=None,
+    #userinfo_endpoint="https://id.twitch.tv/oauth2/userinfo",
+    server_metadata_url=f"{settings.TWITCH_ID_URL}/.well-known/openid-configuration",
+    api_base_url=settings.TWITCH_API_URL,
     client_kwargs={"scope": "channel:read:subscriptions"},
+    token_endpoint_auth_method="client_secret_post",
     fetch_token=fetch_twitch_token,
 )
 
+
+async def twitch_get(url: str, token: dict = None):
+    if token:
+        return await oauth.twitch.get(f"{settings.TWITCH_API_URL}/{url}", token=token,
+                                      headers={'Client-Id': settings.TWITCH_CLIENT_ID})
+    else:
+        return await oauth.twitch.get(f"{settings.TWITCH_API_URL}/{url}",
+                                      headers={'Client-Id': settings.TWITCH_CLIENT_ID})
 
 @app.get("/twitch/login", tags=["oauth"], responses={302: {}})
 async def twitch_login(request: Request, redirect: str = None):
@@ -191,7 +215,7 @@ async def logout(request: Request):
 async def user_update(
     user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
-    token = db.query(OAuth2Token).filter_by(user_uuid=user.uuid).first()
+    token = db.query(OAuth2Token).filter_by(user_id=user.uuid).first()
     if token is None:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
@@ -208,17 +232,21 @@ async def user_update(
     responses={400: {"description": "Unsupported Token-Type"}},
 )
 async def twitch_authorize(request: Request, db: Session = Depends(get_db)):
-    token = await oauth.twitch.authorize_access_token(request)
+    try:
+        token = await oauth.twitch.authorize_access_token(request)
+    except OAuthError as e:
+        raise HTTPException(status_code=500, detail=f"{e.error}")
+
+#    user = token.get("userinfo")
 
     try:
-        if token:
-            resp = await oauth.twitch.get("helix/users", token=token)
-        else:
-            resp = await oauth.twitch.get("helix/users")
+        resp = await twitch_get("users", token)
     except UnsupportedTokenTypeError:
-        raise HTTPException(status_code=400, detail="Unsupported Token-Type")
+        raise HTTPException(status_code=400, detail=f"Unsupported Token-Type")
 
     profile = resp.json()
+
+    profile = profile["data"][0]
 
     # Get user
     user = db.query(User).filter_by(twitch_id=profile["id"]).first()
@@ -226,8 +254,13 @@ async def twitch_authorize(request: Request, db: Session = Depends(get_db)):
     # If user doesn't exist, create a new one.
     if user is None:
         user = User(
-            discord_id=profile.get("id"),
+            twitch_id=profile.get("id"),
             name=profile.get("display_name"),
+            login_name=profile.get("login"),
+            icon_url=profile.get("profile_image_url"),
+            offline_image_url=profile.get("offline_image_url"),
+            description=profile.get("description"),
+            is_superadmin=(profile.get("id") and profile.get("id") == settings.OWNER_TWITCH_ID)
         )
 
         db.add(user)
@@ -236,10 +269,10 @@ async def twitch_authorize(request: Request, db: Session = Depends(get_db)):
 
     if token:
         # Update token
-        token_obj = db.query(OAuth2Token).filter_by(user_uuid=user.uuid, name="twitch").first()
+        token_obj = db.query(OAuth2Token).filter_by(user_id=user.uuid, name="twitch").first()
         if token_obj is None:
             token_obj = OAuth2Token(
-                user_uuid=user.uuid,
+                user_id=user.uuid,
                 name="twitch",
                 token_type=token.get("token_type"),
                 access_token=token.get("access_token"),
@@ -256,7 +289,7 @@ async def twitch_authorize(request: Request, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
 
-    request.session["user"] = user.dict()
+    request.session["user"] = user.jsonable()
 
     url = request.session.get("redirect_url")
     if url is None:
@@ -286,7 +319,7 @@ async def discord_authorize(request: Request, db: Session = Depends(get_db)):
     profile = resp.json()
 
     # Get user
-    user = db.query(User).filter_by(twitch_id=profile["id"]).first()
+    user = db.query(User).filter_by(discord_id=profile["id"]).first()
 
     url = request.session.get("redirect_url")
     if url is None:
@@ -300,12 +333,14 @@ async def discord_authorize(request: Request, db: Session = Depends(get_db)):
 
     user.discord_id = profile.get("id")
 
+    db.add(user)
+
     if token:
         # Update token
-        token_obj = db.query(OAuth2Token).filter_by(user_uuid=user.uuid, name="discord").first()
+        token_obj = db.query(OAuth2Token).filter_by(user_id=user.uuid, name="discord").first()
         if token_obj is None:
             token_obj = OAuth2Token(
-                user_uuid=user.uuid,
+                user_id=user.uuid,
                 name="discord",
                 token_type=token.get("token_type"),
                 access_token=token.get("access_token"),
@@ -323,7 +358,7 @@ async def discord_authorize(request: Request, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
 
-    request.session["user"] = user.dict()
+    request.session["user"] = user.jsonable()
 
     return RedirectResponse(url=url)
 

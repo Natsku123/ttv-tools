@@ -16,23 +16,19 @@ class OAuth2Token(SQLModel, ObjectMixin, table=True):
         description="ID of user",
     )
     name: str = Field(
-        sa_column=Column(String(20), nullable=False),
         description="Name of token OAuth provider",
     )
 
     user: "User" = Relationship()
 
     token_type: str | None = Field(
-        sa_column=Column(String(20)), alias="tokenType", description="Type of token"
+        alias="tokenType", description="Type of token"
     )
     access_token: str = Field(
-        sa_column=Column(String(48), nullable=False),
         alias="accessToken",
         description="Access token from OAuth provider",
     )
-    refresh_token: str | None = Field(
-        sa_column=Column(String(48)),
-        alias="refreshToken",
+    refresh_token: str | None = Field(alias="refreshToken",
         description="Refresh token from OAuth provider",
     )
     expires_at: int | None = Field(
