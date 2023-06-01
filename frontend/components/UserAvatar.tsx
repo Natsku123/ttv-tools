@@ -8,7 +8,7 @@ interface AvatarSize {
 
 interface UserAvatarProps {
     user: User;
-    sx: AvatarSize | undefined;
+    sx?: AvatarSize;
 }
 
 export default function UserAvatar({ user, sx }: UserAvatarProps) {
