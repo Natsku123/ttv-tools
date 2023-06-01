@@ -2,6 +2,7 @@ import nextcord
 
 from core import CustomBot
 from core.embeds import get_notification_embed
+from config import logger
 from nextcord.ext import commands, ipc
 
 
@@ -10,7 +11,7 @@ def serialize_member(member: nextcord.Member) -> dict:
         "discord_id": member.id,
         "name": member.name,
         "mention": member.mention,
-        "avatar_url": member.avatar.url,
+        "avatar_url": member.avatar.url if member.avatar else None,
         "is_admin": member.top_role.permissions.administrator
     }
 
@@ -27,7 +28,7 @@ def serialize_guild(guild: nextcord.Guild) -> dict:
     return {
         "discord_id": guild.id,
         "name": guild.name,
-        "icon_url": guild.icon.url,
+        "icon_url": guild.icon.url if guild.icon else None,
         "description": guild.description,
         "owner": serialize_member(guild.owner),
         "channels": serialize_channels(guild.text_channels)
@@ -52,15 +53,31 @@ class IpcRoutes(commands.Cog):
 
     @ipc.server.route()
     async def send_live_notification(self, data) -> None:
-        embed = get_notification_embed(data.broadcaster_name, data.twitch_icon, data.twitch_url)
+        embed = get_notification_embed(
+            author_name=data.broadcaster_name,
+            icon_url=data.twitch_icon,
+            url=data.twitch_url,
+            game=data.twitch_game,
+            tags=data.twitch_tags,
+            viewers=data.twitch_viewers,
+            started=data.twitch_started,
+            thumbnail=data.twitch_thumbnail,
+            is_mature=data.twitch_is_mature
+        )
 
         embed.title = data.broadcaster_title
         embed.description = data.broadcaster_description
 
-        await self.bot.get_channel(data.channel_discord_id).send(embed=embed)
+        channel = self.bot.get_channel(int(data.channel_discord_id))
+
+        if not channel:
+            logger.error(f"Channel not found for {data.channel_discord_id}")
+            return
+
+        await channel.send(embed=embed)
 
     @ipc.server.route()
-    async def get_all_servers(self) -> list[dict]:
+    async def get_all_servers(self, data) -> list[dict]:
         return serialize_guilds(self.bot.guilds)
 
     @ipc.server.route()

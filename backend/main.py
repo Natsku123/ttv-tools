@@ -16,7 +16,7 @@ from core.database.models import Meta
 from core.database.models.oauth import OAuth2Token
 from core.database.models.users import User
 
-from core.routes import twitch, users, teams, invites, eventsubs
+from core.routes import twitch, users, teams, invites, eventsubs, discord
 
 from core.deps import get_current_user, get_db
 
@@ -372,3 +372,4 @@ app.include_router(users.router, prefix="/users")
 app.include_router(teams.router, prefix="/teams")
 app.include_router(invites.router, prefix="/invites")
 app.include_router(eventsubs.router, prefix="/eventsubs")
+app.include_router(discord.router, prefix="/discord")

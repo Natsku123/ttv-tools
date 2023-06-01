@@ -8,7 +8,6 @@ from celery import Celery
 from celery.schedules import crontab
 
 from sqlmodel import Session, select
-from nextcord.ext import ipc
 
 from config import settings
 from core.database.models.twitch import *
@@ -18,6 +17,8 @@ from core.database.crud.eventsubs import crud as eventsub_crud
 from core.database.crud.users import crud as user_crud
 from core.database.crud.server import crud as server_crud
 from core.database import engine
+
+from core.ipc.client import Client
 
 app = Celery(__name__)
 app.conf.broker_url = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379")
@@ -39,7 +40,6 @@ def get_twitch_access_token() -> str:
 
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
-
     # Update all users twice a day
     sender.add_periodic_task(
         crontab(hour="6,18"),
@@ -48,8 +48,9 @@ def setup_periodic_tasks(sender, **kwargs):
 
 
 @app.task
-def update_users(update_all: bool = False, token: str = None, user_uuids: list[uuid.UUID] = None, twitch_ids: list[str] = None, discord_ids: list[str] = None):
-
+def update_users(update_all: bool = False, token: str = None,
+                 user_uuids: list[uuid.UUID] = None, twitch_ids: list[str] = None,
+                 discord_ids: list[str] = None):
     if not user_uuids:
         user_uuids = []
     if not twitch_ids:
@@ -61,14 +62,17 @@ def update_users(update_all: bool = False, token: str = None, user_uuids: list[u
         token = get_twitch_access_token()
 
     twitch_headers = {
-        "Authorization": f"Bearer {token}"
+        "Authorization": f"Bearer {token}",
+        "Client-Id": settings.TWITCH_CLIENT_ID,
     }
 
     with Session(engine) as session:
         if not update_all:
             users_by_uuid = [user_crud.get(session, x) for x in user_uuids]
-            users_by_twitch = [user_crud.get_by_twitch_id(session, x) for x in twitch_ids]
-            users_by_discord = [user_crud.get_by_discord_id(session, x) for x in discord_ids]
+            users_by_twitch = [user_crud.get_by_twitch_id(session, x) for x in
+                               twitch_ids]
+            users_by_discord = [user_crud.get_by_discord_id(session, x) for x in
+                                discord_ids]
 
             users = users_by_uuid + users_by_twitch + users_by_discord
         else:
@@ -373,6 +377,15 @@ def get_event_version(e: EventSubscription) -> int:
             return 1
 
 
+def ipc_request(loop, *args, **kwargs):
+    ipc_client = Client(
+        host=settings.IPC_HOST, port=settings.IPC_PORT,
+        secret_key=settings.IPC_SECRET
+    )
+    loop.run_until_complete(ipc_client.request(*args, **kwargs))
+    loop.run_until_complete(ipc_client.close())
+
+
 @app.task
 def create_twitch_eventsub(eventsub: dict):
     eventsub: EventSubscription = EventSubscription.parse_obj(eventsub)
@@ -425,14 +438,10 @@ def delete_twitch_eventsub(eventsub: dict):
 
 
 @app.task
-def process_notification(message_id: str, data: dict):
+def process_notification(message_id: str, subscription_type, data: dict):
     loop = asyncio.get_event_loop()
-    ipc_client = ipc.Client(
-        host=settings.IPC_HOST, port=settings.IPC_PORT,
-        secret_key=settings.IPC_SECRET
-    )
 
-    data = TwitchEvent.parse_obj(data)
+    data = get_model_by_subscription_type(subscription_type, data)
 
     r = redis.Redis(host="redis", port=6379, decode_responses=True)
 
@@ -451,18 +460,85 @@ def process_notification(message_id: str, data: dict):
             user = None
 
         if user:
-
+            sent = []
             if isinstance(data, StreamOnlineEvent):
-                eventsubs = eventsub_crud.get_multi_by_user_uuid_and_event(session, user.uuid, "stream.online")
+                eventsubs = eventsub_crud.get_multi_by_user_uuid_and_event(session,
+                                                                           user.uuid,
+                                                                           "stream.online")
+                sent += [f"{user.name} =[stream.online]=> {x.channel_discord_id}" for x
+                         in eventsubs]
+
+                token = get_twitch_access_token()
+
+                twitch_headers = {
+                    "Authorization": f"Bearer {token}",
+                    "Client-Id": settings.TWITCH_CLIENT_ID,
+                }
+
+                #channel_info = requests.get(
+                #    f"{settings.TWITCH_API_URL}/channels",
+                #    headers=twitch_headers,
+                #    params={
+                #        "broadcaster_id": user.twitch_id
+                #    }).json()
+
+                streams = requests.get(
+                    f"{settings.TWITCH_API_URL}/streams",
+                    headers=twitch_headers,
+                    params={
+                        "user_id": user.twitch_id,
+                        "type": "live"
+                    }
+                ).json()
+
+                #if isinstance(channel_info, list) and len(channel_info) > 0:
+                #    default_title = channel_info[0]["title"]
+                #    game = channel_info[0]["game_name"]
+                #    tags = channel_info[0]["tags"]
+                #else:
+                #    default_title = "Hey I'm live!"
+                #    game = None
+                #    tags = None
+                default_description = f"Hey {data.broadcaster_user_name} is now live!"
+
+                if "data" in streams and len(streams["data"]) > 0:
+                    default_title = streams["data"][0]["title"]
+                    game = streams["data"][0]["game_name"]
+                    tags = streams["data"][0]["tags"]
+                    viewers = streams["data"][0]["viewer_count"]
+                    started = streams["data"][0]["started_at"]
+                    thumbnail = streams["data"][0]["thumbnail_url"].format(width=1280//2, height=720//2)
+                    is_mature = streams["data"][0]["is_mature"]
+                else:
+                    default_title = "Hey I'm live!"
+                    game = None
+                    tags = None
+                    viewers = None
+                    started = None
+                    thumbnail = None
+                    is_mature = None
+
                 for eventsub in eventsubs:
-                    loop.run_until_complete(ipc_client.request(
+                    ipc_request(
+                        loop,
                         "send_live_notification",
-                        broadcaster_title=eventsub.custom_title if eventsub.custom_title else "Hey I'm live!",
-                        broadcaster_description=eventsub.custom_description if eventsub.custom_description else f"Hey {data.broadcaster_user_name} is now live!",
+                        broadcaster_title=eventsub.custom_title if eventsub.custom_title else default_title,
+                        broadcaster_description=eventsub.custom_description if eventsub.custom_description else default_description,
                         channel_discord_id=eventsub.channel_discord_id,
                         server_discord_id=eventsub.server_discord_id,
                         broadcaster_name=data.broadcaster_user_name,
                         twitch_icon=user.icon_url,
-                        twitch_url=f"https://twitch.tv/{data.broadcaster_user_login}"
-                    ))
+                        twitch_url=f"https://twitch.tv/{data.broadcaster_user_login}",
+                        twitch_game=game,
+                        twitch_tags=tags,
+                        twitch_viewers=viewers,
+                        twitch_started=started,
+                        twitch_thumbnail=thumbnail,
+                        twitch_is_mature=is_mature
+                    )
+            else:
+                return f"Unknown type for: {data.json()}"
 
+            return sent
+        else:
+            return "No user found..."

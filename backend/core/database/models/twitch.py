@@ -470,9 +470,9 @@ class UserUpdateEvent(BaseModel):
     description: str
 
 
-def get_model_by_subscription_type(subscription_type: str, data: dict) -> BaseModel:
+def get_model_by_subscription_type(subscription_type: str, data: dict) -> TwitchEvent:
 
-    model = BaseModel
+    model = TwitchEvent
 
     match subscription_type:
         case "channel.update":

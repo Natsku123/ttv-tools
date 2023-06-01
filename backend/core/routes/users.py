@@ -21,6 +21,17 @@ def users_root(*, current_user: User = Depends(get_current_user)):
     return current_user
 
 
+@router.get("/all", response_model=list[User], tags=["users"])
+def get_users(*, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not current_user:
+        raise not_authorized()
+
+    if not current_user.is_superadmin:
+        raise forbidden()
+
+    return users.crud.get_multi(db)
+
+
 @router.get("/{user_uuid}", response_model=User, tags=["users"])
 def get_user(*,
              current_user: User = Depends(get_current_user),

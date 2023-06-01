@@ -15,40 +15,6 @@ router = APIRouter()
 HMAC_PREFIX = 'sha256='
 
 
-#class TwitchEventSubscriptionCondition(BaseModel):
-#    broadcaster_user_id: str
-
-
-#class TwitchEventSubscriptionTransport(BaseModel):
-#    method: str
-#    callback: str
-
-
-#class TwitchEventSubscription(BaseModel):
-#    id: str
-#    status: str
-#    type: str
-#    version: str
-#    cost: int
-#    condition: TwitchEventSubscriptionCondition
-#    transport: TwitchEventSubscriptionTransport
-#    created_at: datetime
-
-
-#class TwitchEventNotificationEvent(BaseModel):
-#    user_id: str
-#    user_login: str
-#    user_name: str
-#    broadcaster_user_id: str
-#    broadcaster_user_login: str
-#    broadcaster_user_name: str
-#    followed_at: datetime | None
-
-
-#class TwitchEventNotification(BaseModel):
-#    subscription: TwitchEventSubscription
-#    event: TwitchEventNotificationEvent
-
 @router.post("/event-sub/callback")
 async def event_sub_callback(
         request: Request,
@@ -78,7 +44,7 @@ async def event_sub_callback(
     if Twitch_Eventsub_Message_Type == "notification" and 'event' in json_body:
         event = get_model_by_subscription_type(Twitch_Eventsub_Subscription_Type, json_body['event'])
 
-        process_notification.delay(Twitch_Eventsub_Message_Id, event.dict())
+        process_notification.delay(Twitch_Eventsub_Message_Id, Twitch_Eventsub_Subscription_Type, event.dict())
     elif Twitch_Eventsub_Message_Type == "webhook_callback_verification":
         return Response(content=json_body["challenge"], status_code=200, media_type="text/plain")
     elif Twitch_Eventsub_Message_Type == "revocation":
