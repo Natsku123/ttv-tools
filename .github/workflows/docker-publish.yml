@@ -28,7 +28,7 @@ jobs:
       run:
         working-directory: ./frontend
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install modules
         run: yarn
       - name: Run ESLint
@@ -42,7 +42,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # Login against a Docker registry except on PR
       # https://github.com/docker/login-action
@@ -58,7 +58,7 @@ jobs:
       # https://github.com/docker/metadata-action
       - name: Extract Docker metadata for bot image
         id: metabot
-        uses: docker/metadata-action@v2
+        uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-bot
 
@@ -80,7 +80,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # Login against a Docker registry except on PR
       # https://github.com/docker/login-action
@@ -96,7 +96,7 @@ jobs:
       # https://github.com/docker/metadata-action
       - name: Extract Docker metadata for worker image
         id: metaworker
-        uses: docker/metadata-action@v2
+        uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-worker
 
@@ -106,7 +106,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ./backend
-          file: Dockerfile-worker
+          file: ./backend/Dockerfile-worker
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.metaworker.outputs.tags }}
           labels: ${{ steps.metaworker.outputs.labels }}
@@ -119,7 +119,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # Login against a Docker registry except on PR
       # https://github.com/docker/login-action
@@ -135,7 +135,7 @@ jobs:
       # https://github.com/docker/metadata-action
       - name: Extract Docker metadata for backend image
         id: metabackend
-        uses: docker/metadata-action@v2
+        uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend
 
@@ -158,7 +158,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # Login against a Docker registry except on PR
       # https://github.com/docker/login-action
@@ -174,7 +174,7 @@ jobs:
       # https://github.com/docker/metadata-action
       - name: Extract Docker metadata for frontend image
         id: metafrontend
-        uses: docker/metadata-action@v2
+        uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend
 
