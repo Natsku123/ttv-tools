@@ -30,12 +30,12 @@ import Link from "next/link";
 import {QueryClient} from "@tanstack/query-core";
 
 interface FormValues {
-    user: User | undefined;
-    event: string;
-    server: DiscordServer;
-    channel: DiscordChannel;
-    title: string;
-    description: string;
+    user: User | undefined | null;
+    event: string | null;
+    server: DiscordServer | null;
+    channel: DiscordChannel | null;
+    title: string | null;
+    description: string | null;
 }
 
 export async function getStaticProps() {
