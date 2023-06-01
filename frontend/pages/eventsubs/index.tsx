@@ -85,7 +85,7 @@ export default function EventsubsPage() {
         }
     ];
 
-    const results: Array<UseQueryResult> = useQueries(
+    const results: Array<UseQueryResult<any, AxiosError>> = useQueries(
         { queries }
     );
 
