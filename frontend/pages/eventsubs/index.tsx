@@ -48,7 +48,7 @@ export async function getStaticProps() {
     }
 }
 
-export default function () {
+export default function EventsubsPage() {
 
     const queryClient = useQueryClient();
 

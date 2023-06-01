@@ -1,7 +1,7 @@
 import {Paper} from "@mui/material";
 import {useRouter} from "next/router";
 
-export default function () {
+export default function EventsubPage() {
     const router = useRouter();
 
     return (<Paper>

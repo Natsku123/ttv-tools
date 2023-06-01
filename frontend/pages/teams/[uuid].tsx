@@ -56,7 +56,7 @@ export default function TeamPage() {
                       <Typography><b>Updated on</b>: {data.updated_on ? formatRFC7231(new Date(data.updated_on)) : ""}</Typography>
                       <Box py={2}>
                         <Typography variant={"h4"}>Members</Typography>
-                          { data.members && data.members.map((member) => <Grid container>
+                          { data.members && data.members.map((member) => <Grid container key={member.uuid}>
                               <Grid item xs={4}><UserAvatar user={member} /></Grid>
                               <Grid item xs={8}><Typography variant={"h5"}>{member.name}</Typography></Grid>
                               {currentUser?.is_superadmin && currentUser.is_superadmin &&

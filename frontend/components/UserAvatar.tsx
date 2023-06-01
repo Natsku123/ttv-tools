@@ -11,7 +11,7 @@ interface UserAvatarProps {
     sx: AvatarSize | undefined;
 }
 
-export default function ({ user, sx }: UserAvatarProps) {
+export default function UserAvatar({ user, sx }: UserAvatarProps) {
     return (
         <>
             { user?.icon_url && user.icon_url != ""

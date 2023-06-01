@@ -57,7 +57,7 @@ export default function UserPage() {
                         <Typography><b>Updated on</b>: {data.updated_on ? formatRFC7231(new Date(data.updated_on)) : ""}</Typography>
                         <Box py={2}>
                           <Typography variant={"h4"}>Teams</Typography>
-                            { data.teams && data.teams.map((team) => <Grid container>
+                            { data.teams && data.teams.map((team) => <Grid container key={team.uuid}>
                                 <Grid item xs={4}><Typography variant={"h5"}>{team.name}</Typography></Grid>
                                 <Grid item xs={8}><Link href={`/teams/${team.uuid}`} passHref><Button>Show</Button></Link></Grid>
                                 <Grid item xs={12}><Typography>{team.description}</Typography></Grid>
