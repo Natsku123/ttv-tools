@@ -9,7 +9,6 @@ import {
   CssBaseline,
   ThemeProvider,
   Toolbar,
-  Typography,
   Link as MaterialLink,
   Container, Grid
 } from "@mui/material";
@@ -32,15 +31,14 @@ export default function App({ Component, pageProps }: AppProps) {
                 <Grid container justifyContent={"space-between"}>
                   <Grid item>
                     <Box px={2}>
-                      <Link href={'/'} passHref component={MaterialLink}>
-                        <Typography
+                      <Link href={'/'} passHref>
+                        <MaterialLink
                             variant="h6"
                             noWrap
                             style={{ textDecoration: 'none', boxShadow: 'none', color: '#ffffff' }}
-                            sx={{ mr: 2, display: { xs: 'none', md: 'flex' } }}
-                        >
+                            sx={{ mr: 2, display: { xs: 'none', md: 'flex' } }}>
                           TTV Tools
-                        </Typography>
+                        </MaterialLink>
                       </Link>
                     </Box>
                   </Grid>
