@@ -78,28 +78,29 @@ def update_users(update_all: bool = False, token: str = None,
         else:
             users = user_crud.get_multi(session)
 
-        users_twitch_ids = list(set([x.twitch_id for x in users if x]))
+        if len(users) > 0:
+            users_twitch_ids = list(set([x.twitch_id for x in users if x]))
 
-        user_data = requests.get(
-            f"{settings.TWITCH_API_URL}/users",
-            headers=twitch_headers,
-            params={
-                "id": users_twitch_ids
-            }).json()
+            user_data = requests.get(
+                f"{settings.TWITCH_API_URL}/users",
+                headers=twitch_headers,
+                params={
+                    "id": users_twitch_ids
+                }).json()
 
-        for ud in user_data:
-            user = user_crud.get_by_twitch_id(session, ud["id"])
+            for ud in user_data:
+                user = user_crud.get_by_twitch_id(session, ud["id"])
 
-            if user:
-                user_update = UserUpdate(**{
-                    "name": ud["display_name"],
-                    "login_name": ud["login"],
-                    "icon_url": ud["profile_image_url"],
-                    "offline_image_url": ud["offline_image_url"],
-                    "description": ud["description"]
-                })
+                if user:
+                    user_update = UserUpdate(**{
+                        "name": ud["display_name"],
+                        "login_name": ud["login"],
+                        "icon_url": ud["profile_image_url"],
+                        "offline_image_url": ud["offline_image_url"],
+                        "description": ud["description"]
+                    })
 
-                user_crud.update(session, user, user_update)
+                    user_crud.update(session, user, user_update)
 
 
 def get_event_condition(e: EventSubscription) -> dict:
