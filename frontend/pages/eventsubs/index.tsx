@@ -81,7 +81,10 @@ export default function EventsubsPage() {
         },
         {
             queryKey: ["discordServers"],
-            queryFn: getDiscordServers
+            queryFn: getDiscordServers,
+            options: {
+                enabled: !!currentUser?.discord_id
+            }
         }
     ];
 

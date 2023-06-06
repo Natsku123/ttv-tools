@@ -330,7 +330,10 @@ async def twitch_authorize(request: Request, db: Session = Depends(get_db)):
     tags=["oauth"],
     responses={400: {"description": "Unsupported Token-Type"}},
 )
-async def discord_authorize(request: Request, db: Session = Depends(get_db)):
+async def discord_authorize(request: Request, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    if not user:
+        raise not_authorized()
+
     token = await oauth.discord.authorize_access_token(request)
 
     try:
@@ -344,17 +347,12 @@ async def discord_authorize(request: Request, db: Session = Depends(get_db)):
     profile = resp.json()
 
     # Get user
-    user = db.query(User).filter_by(discord_id=profile["id"]).first()
 
     url = request.session.get("redirect_url")
     if url is None:
         url = settings.SITE_HOSTNAME
     else:
         del request.session["redirect_url"]
-
-    # If user doesn't exist, nothing to do
-    if user is None:
-        return RedirectResponse(url=url)
 
     user.discord_id = profile.get("id")
 
