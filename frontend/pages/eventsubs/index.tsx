@@ -269,10 +269,9 @@ export default function EventsubsPage() {
                         <Controller
                           render={({field}) => <Autocomplete
                               {...field}
-                              helperText={"If you aren't seeing your server, add the bot to the server below."}
                               getOptionLabel={(option) => option.name}
                               isOptionEqualToValue={(o, v) => o.discord_id === v.discord_id}
-                              renderInput={(params) => <TextField {...params} label="Discord Server" margin="normal" />}
+                              renderInput={(params) => <TextField {...params} helperText={"If you aren't seeing your server, add the bot to the server below."} label="Discord Server" margin="normal" />}
                               options={discordServers ? discordServers : []}
                               onChange={(_, data) => field.onChange(data)} />}
                           name="server" control={control} rules={requiredRules} />
