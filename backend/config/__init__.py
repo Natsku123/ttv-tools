@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     TWITCH_CLIENT_ID: str = os.environ.get("TWITCH_CLIENT_ID")
     TWITCH_CLIENT_SECRET: str = os.environ.get("TWITCH_CLIENT_SECRET")
     BOT_TOKEN: str = os.environ.get("BOT_TOKEN", "NO TOKEN")
+    ROOT_PATH: str = os.environ.get("ROOT_PATH")
 
     OWNER_TWITCH_ID: str = os.environ.get("OWNER_TWITCH_ID")
 

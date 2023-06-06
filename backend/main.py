@@ -20,7 +20,7 @@ from core.routes import twitch, users, teams, invites, eventsubs, discord
 
 from core.deps import get_current_user, get_db
 
-app = FastAPI()
+app = FastAPI(root_path=settings.ROOT_PATH)
 
 
 def custom_openapi():
