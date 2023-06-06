@@ -269,6 +269,7 @@ export default function EventsubsPage() {
                         <Controller
                           render={({field}) => <Autocomplete
                               {...field}
+                              helperText={"If you aren't seeing your server, add the bot to the server below."}
                               getOptionLabel={(option) => option.name}
                               isOptionEqualToValue={(o, v) => o.discord_id === v.discord_id}
                               renderInput={(params) => <TextField {...params} label="Discord Server" margin="normal" />}
@@ -297,6 +298,9 @@ export default function EventsubsPage() {
                           <Button variant={"contained"} color={"success"} type={"submit"} style={{marginLeft: 20}}>Create</Button>
                         </Box>
                       </form>
+                      <Box py={2}>
+                        <Link href={"/api/discord/addbot"}><Button variant={"outlined"} color={"success"}>Add bot</Button></Link>
+                      </Box>
                     </Box>
                   </Paper>
                 </Grid>}

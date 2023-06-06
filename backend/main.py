@@ -17,6 +17,7 @@ from core.database.models.oauth import OAuth2Token
 from core.database.models.users import User
 
 from core.routes import twitch, users, teams, invites, eventsubs, discord
+from core.routes import not_authorized
 
 from core.deps import get_current_user, get_db
 
@@ -200,6 +201,31 @@ async def discord_login(request: Request, redirect: str = None):
     request.session["redirect_url"] = redirect
 
     return await oauth.discord.authorize_redirect(request, redirect_uri)
+
+
+@app.get("/discord/unlink", tags=["discord"])
+async def discord_unlink(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not user:
+        raise not_authorized()
+
+    token_obj = db.query(OAuth2Token).filter_by(user_id=user.uuid,
+                                                name="discord").first()
+
+    if token_obj:
+        db.delete(token_obj)
+
+    user.discord_id = None
+    db.add(user)
+
+    db.commit()
+
+    return RedirectResponse(url=settings.SITE_HOSTNAME)
+
+
+@app.get("/discord/addbot", tags=["discord"])
+async def discord_addbot():
+    return RedirectResponse(url=f"https://discord.com/api/oauth2/authorize?client_id={settings.DISCORD_CLIENT_ID}&permissions=150528&scope=bot")
+
 
 @app.get("/logout", tags=["oauth"], responses={307: {}})
 async def logout(request: Request):

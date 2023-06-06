@@ -9,8 +9,7 @@ import {
   CssBaseline,
   ThemeProvider,
   Toolbar,
-  Link as MaterialLink,
-  Container, Grid
+  Container, Grid, Typography
 } from "@mui/material";
 import Link from "next/link";
 import {theme} from "@/components/theme";
@@ -31,14 +30,14 @@ export default function App({ Component, pageProps }: AppProps) {
                 <Grid container justifyContent={"space-between"}>
                   <Grid item>
                     <Box px={2}>
-                      <Link href={'/'} passHref>
-                        <MaterialLink
+                      <Link href={'/'}>
+                        <Typography
                             variant="h6"
                             noWrap
                             style={{ textDecoration: 'none', boxShadow: 'none', color: '#ffffff' }}
                             sx={{ mr: 2, display: { xs: 'none', md: 'flex' } }}>
                           TTV Tools
-                        </MaterialLink>
+                        </Typography>
                       </Link>
                     </Box>
                   </Grid>

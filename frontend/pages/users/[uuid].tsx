@@ -35,6 +35,7 @@ export default function UserPage() {
                         <Typography><b>Twitch Login Name</b>: <Skeleton /></Typography>
                         <Typography><b>Created on</b>: <Skeleton /></Typography>
                         <Typography><b>Updated on</b>: <Skeleton /></Typography>
+                        <Typography><b>Discord</b>: <Skeleton /></Typography>
                         <Box py={2}>
                             <Typography variant={"h4"}>Teams</Typography>
                         </Box>
@@ -55,6 +56,12 @@ export default function UserPage() {
                         <Typography><b>Twitch Login Name</b>: {data.login_name}</Typography>
                         <Typography><b>Created on</b>: {data.created_on && formatRFC7231(new Date(data.created_on))}</Typography>
                         <Typography><b>Updated on</b>: {data.updated_on && formatRFC7231(new Date(data.updated_on))}</Typography>
+                        <Grid container alignItems={"center"} spacing={2}>
+                          <Grid item><Typography><b>Discord</b>: {data.discord_id ? "Linked" : "Not linked"}</Typography></Grid>
+                          <Grid item>
+                              { data.discord_id ? <Link href={"/api/discord/unlink"}><Button color={"error"} variant={"outlined"}>Unlink</Button></Link> : <Link href={"/api/discord/login"}><Button color={"success"} variant={"outlined"}>Link</Button></Link> }
+                          </Grid>
+                        </Grid>
                         <Box py={2}>
                           <Typography variant={"h4"}>Teams</Typography>
                             { data.teams && data.teams.map((team) => <Grid container key={team.uuid}>
