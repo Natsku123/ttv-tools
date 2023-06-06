@@ -13,7 +13,7 @@ import {
   Container, Grid
 } from "@mui/material";
 import Link from "next/link";
-import {theme} from "@/pages/theme";
+import {theme} from "@/components/theme";
 import Footer from "@/components/Footer";
 import {UserBar} from "@/components/UserBar";
 

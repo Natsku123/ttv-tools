@@ -1,25 +1,25 @@
 interface Base {
-    readonly uuid?: string;
-    readonly created_on?: string;
-    readonly updated_on?: string;
+    readonly uuid?: string | undefined;
+    readonly created_on?: string | undefined;
+    readonly updated_on?: string | undefined;
 }
 
 interface Team extends Base {
     name: string;
     description: string;
-    members?: Array<User>
+    members?: Array<User> | undefined
 }
 
 interface User extends Base{
-    readonly discord_id?: string;
+    readonly discord_id?: string | undefined;
     readonly twitch_id: string;
     readonly name: string;
-    readonly login_name?: string;
-    readonly icon_url?: string;
-    readonly offline_image_url?: string;
-    readonly description?: string;
+    readonly login_name?: string | undefined;
+    readonly icon_url?: string | undefined;
+    readonly offline_image_url?: string | undefined;
+    readonly description?: string | undefined;
     is_superadmin: boolean;
-    readonly teams?: Array<Team>;
+    readonly teams?: Array<Team> | undefined;
 }
 
 interface DiscordChannel {
@@ -50,9 +50,9 @@ interface EventSubscription extends Base {
     server_discord_id: string;
     channel_discord_id: string;
     event: string;
-    readonly twitch_id?: string;
-    custom_title?: string;
-    custom_description?: string;
+    readonly twitch_id?: string | undefined;
+    custom_title?: string | undefined;
+    custom_description?: string | undefined;
 }
 
 interface TeamInvite extends Base {
@@ -67,7 +67,7 @@ interface Membership extends Base {
     allowed_invites: boolean;
 }
 
-export {
+export type {
     Team,
     User,
     DiscordServer,

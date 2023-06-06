@@ -52,8 +52,8 @@ export default function TeamPage() {
                     </Grid>
                     <Grid item xs={12}>
                       <Typography><b>Description</b>: {data.description}</Typography>
-                      <Typography><b>Created on</b>: {formatRFC7231(new Date(data.created_on))}</Typography>
-                      <Typography><b>Updated on</b>: {data.updated_on ? formatRFC7231(new Date(data.updated_on)) : ""}</Typography>
+                      <Typography><b>Created on</b>: {data.created_on && formatRFC7231(new Date(data.created_on))}</Typography>
+                      <Typography><b>Updated on</b>: {data.updated_on && formatRFC7231(new Date(data.updated_on))}</Typography>
                       <Box py={2}>
                         <Typography variant={"h4"}>Members</Typography>
                           { data.members && data.members.map((member) => <Grid container key={member.uuid}>

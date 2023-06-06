@@ -53,8 +53,8 @@ export default function UserPage() {
                       <Grid item xs={12}>
                         <Typography><b>Twitch Description</b>: {data.description}</Typography>
                         <Typography><b>Twitch Login Name</b>: {data.login_name}</Typography>
-                        <Typography><b>Created on</b>: {formatRFC7231(new Date(data.created_on))}</Typography>
-                        <Typography><b>Updated on</b>: {data.updated_on ? formatRFC7231(new Date(data.updated_on)) : ""}</Typography>
+                        <Typography><b>Created on</b>: {data.created_on && formatRFC7231(new Date(data.created_on))}</Typography>
+                        <Typography><b>Updated on</b>: {data.updated_on && formatRFC7231(new Date(data.updated_on))}</Typography>
                         <Box py={2}>
                           <Typography variant={"h4"}>Teams</Typography>
                             { data.teams && data.teams.map((team) => <Grid container key={team.uuid}>

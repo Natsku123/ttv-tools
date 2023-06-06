@@ -30,12 +30,12 @@ import Link from "next/link";
 import {QueryClient} from "@tanstack/query-core";
 
 interface FormValues {
-    user: User | undefined | null;
-    event: string | null;
-    server: DiscordServer | null;
-    channel: DiscordChannel | null;
-    title: string | null;
-    description: string | null;
+    user: User | undefined;
+    event: string;
+    server: DiscordServer;
+    channel: DiscordChannel;
+    title: string;
+    description: string;
 }
 
 export async function getStaticProps() {
@@ -52,7 +52,7 @@ export default function EventsubsPage() {
 
     const queryClient = useQueryClient();
 
-    const { control, handleSubmit, watch, reset } = useForm<FormValues>({ defaultValues: {user: null, event: null, server: null, channel: null, title: "", description: ""}, mode: "onChange"});
+    const { control, handleSubmit, watch, reset } = useForm<FormValues>({ mode: "onChange"});
 
     const {
         data: currentUser,
@@ -62,7 +62,7 @@ export default function EventsubsPage() {
 
     const userUuid = currentUser?.uuid;
 
-    const selectedDServer = watch("server", null);
+    const selectedDServer = watch('server');
 
     const queries: Array<QueriesOptions<any>> = [
         {
@@ -170,9 +170,13 @@ export default function EventsubsPage() {
         "user.update"
     ];
 
-    const onSubmit: (user: (User | undefined), data) => void = (user: User | undefined, data) => {
+    const onSubmit: (user: User, data: FormValues) => void = (user: User, data) => {
         if (!data.user) {
             data.user = user;
+        }
+
+        if (data.user.uuid === undefined) {
+            return;
         }
 
         const eventSub: EventSubscription = {
@@ -181,7 +185,7 @@ export default function EventsubsPage() {
             custom_title: data.title,
             event: data.event,
             server_discord_id: data.server.discord_id,
-            user_uuid: data.user.uuid,
+            user_uuid: data.user.uuid
         };
 
         create.mutate(eventSub);
@@ -240,7 +244,7 @@ export default function EventsubsPage() {
                     </>}
                     <Button variant={"outlined"} color={"primary"} onClick={() => setCreateEnabled(true)} disabled={createEnabled}>Create</Button>
                 </Grid>
-                {createEnabled && <Grid item xs={12} md={6}>
+                {createEnabled && currentUser && <Grid item xs={12} md={6}>
                   <Paper>
                     <Box px={2}>
                       <form onSubmit={handleSubmit((data) => onSubmit(currentUser, data))}>

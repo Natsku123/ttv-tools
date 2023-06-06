@@ -1,10 +1,10 @@
-import axios from 'axios';
+import axios, {Axios} from 'axios';
 import { wrapper } from 'axios-cookiejar-support';
 import { CookieJar } from 'tough-cookie';
 
-import WebStorageCookieStore from 'tough-cookie-web-storage-store';
+const WebStorageCookieStore =  require('tough-cookie-web-storage-store');
 
-let client;
+let client: Axios;
 
 if (typeof window === 'undefined') {
     client = wrapper(axios.create({ withCredentials: true}));
