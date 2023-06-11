@@ -418,24 +418,25 @@ def create_twitch_eventsub(eventsub: dict):
     ).json()
 
     with Session(engine) as session:
-        eventsub_crud.update_twitch_id(session, eventsub, resp["data"][0]["id"])
+        eventsub_crud.update_twitch_id(session, db_obj=eventsub, twitch_id=resp["data"][0]["id"])
 
 
 @app.task
 def delete_twitch_eventsub(eventsub: dict):
     eventsub: EventSubscription = EventSubscription.parse_obj(eventsub)
 
-    token = get_twitch_access_token()
+    if eventsub.twitch_id:
+        token = get_twitch_access_token()
 
-    twitch_headers = {
-        "Authorization": f"Bearer {token}",
-        "Client-Id": settings.TWITCH_CLIENT_ID,
-    }
+        twitch_headers = {
+            "Authorization": f"Bearer {token}",
+            "Client-Id": settings.TWITCH_CLIENT_ID,
+        }
 
-    requests.delete(
-        f"{settings.TWITCH_API_URL}/eventsub/subscriptions?id={eventsub.twitch_id}",
-        headers=twitch_headers,
-    )
+        requests.delete(
+            f"{settings.TWITCH_API_URL}/eventsub/subscriptions?id={eventsub.twitch_id}",
+            headers=twitch_headers,
+        )
 
     with Session(engine) as session:
         eventsub_crud.remove(session, uuid=eventsub.uuid)
