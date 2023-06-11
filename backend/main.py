@@ -346,8 +346,6 @@ async def discord_authorize(request: Request, db: Session = Depends(get_db), use
 
     profile = resp.json()
 
-    # Get user
-
     url = request.session.get("redirect_url")
     if url is None:
         url = settings.SITE_HOSTNAME

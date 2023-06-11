@@ -16,8 +16,11 @@ def get_db():
 
 
 async def get_ipc():
-    async with Client(host=settings.IPC_HOST, port=settings.IPC_PORT, secret_key=settings.IPC_SECRET) as ipc_client:
-        yield ipc_client
+    #async with Client(host=settings.IPC_HOST, port=settings.IPC_PORT, secret_key=settings.IPC_SECRET) as ipc_client:
+    #    yield ipc_client
+    ipc_client = Client(host=settings.IPC_HOST, port=settings.IPC_PORT, secret_key=settings.IPC_SECRET)
+    yield ipc_client
+    await ipc_client.close()
 
 
 def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:

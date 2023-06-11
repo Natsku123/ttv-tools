@@ -88,7 +88,10 @@ def update_users(update_all: bool = False, token: str = None,
                     "id": users_twitch_ids
                 }).json()
 
-            for ud in user_data:
+            if "data" not in user_data:
+                return user_data
+
+            for ud in user_data["data"]:
                 user = user_crud.get_by_twitch_id(session, ud["id"])
 
                 if user:
