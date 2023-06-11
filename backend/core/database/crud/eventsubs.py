@@ -41,11 +41,15 @@ class CRUDEventSubscription(CRUDBase[EventSubscription, EventSubscriptionCreate,
         db_obj: EventSubscription,
         twitch_id: str
     ) -> ModelType:
-        db_obj.twitch_id = twitch_id
-
-        db.commit()
-        db.refresh(db_obj)
-        return db_obj
+        obj_in = EventSubscriptionUpdate(**{
+            "twitch_id": twitch_id,
+            "server_discord_id": db_obj.server_discord_id,
+            "channel_discord_id": db_obj.channel_discord_id,
+            "event": db_obj.event,
+            "custom_title": db_obj.custom_title,
+            "custom_description": db_obj.custom_description
+        })
+        return self.update(db, db_obj=db_obj, obj_in=obj_in)
 
 
 crud = CRUDEventSubscription(EventSubscription)

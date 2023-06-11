@@ -29,6 +29,7 @@ class EventSubscriptionUpdate(SQLModel):
     custom_title: str | None = Field(None, description="Custom title for notification")
     custom_description: str | None = Field(None,
                                            description="Custom description for notification")
+    twitch_id: str | None = Field(None, description="Twitch ID of Event Subscription")
 
     class Config:
         orm_mode = True

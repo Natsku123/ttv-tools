@@ -28,7 +28,7 @@ export async function getStaticProps() {
 export default function InvitesPage() {
     const queryClient = useQueryClient();
 
-    const {control, handleSubmit, reset} = useForm<FormValues>({mode: "onChange"});
+    const {control, handleSubmit, resetField} = useForm<FormValues>({mode: "onChange"});
 
     const twitch_login = useWatch<FormValues>({control, name: "login"});
 
@@ -57,7 +57,6 @@ export default function InvitesPage() {
         mutationFn: createInvite,
         onSuccess: async data => {
             queryClient.setQueryData(['invites', data.uuid], data);
-            reset(data);
             await queryClient.invalidateQueries({queryKey: ['invites']});
         }
     });
