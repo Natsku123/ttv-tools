@@ -188,7 +188,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             if field in update_data:
                 setattr(db_obj, field, update_data[field])
 
-        db.add(db_obj)
+        #db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
         return db_obj
