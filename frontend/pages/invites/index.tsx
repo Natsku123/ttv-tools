@@ -32,7 +32,7 @@ export default function InvitesPage() {
 
     const twitch_login = useWatch<FormValues>({control, name: "login"});
 
-    const [twitch, setTwitch] = useState<{id: string, display_name: string, login: string, profile_image_url: string}>(null);
+    const [twitch, setTwitch] = useState<{id: string, display_name: string, login: string, profile_image_url: string}>();
 
 
     const {
