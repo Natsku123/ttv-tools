@@ -16,7 +16,7 @@ from core.database.models.eventsubs import EventSubscription
 from core.database.crud.eventsubs import crud as eventsub_crud
 from core.database.crud.users import crud as user_crud
 from core.database.crud.server import crud as server_crud
-from core.database import SessionLocal
+from core.database import engine
 from core.twitch_tools import get_twitch_access_token
 
 from core.ipc.client import Client
@@ -55,7 +55,7 @@ def update_users(update_all: bool = False, token: str = None,
         "Client-Id": settings.TWITCH_CLIENT_ID,
     }
 
-    with SessionLocal() as session:
+    with Session(engine) as session:
         if not update_all:
             users_by_uuid = [user_crud.get(session, x) for x in user_uuids]
             users_by_twitch = [user_crud.get_by_twitch_id(session, x) for x in
@@ -96,7 +96,7 @@ def update_users(update_all: bool = False, token: str = None,
 
 
 def get_event_condition(e: EventSubscription) -> dict:
-    with SessionLocal() as session:
+    with Session(engine) as session:
         user = user_crud.get(session, e.user_uuid)
 
     match e.event:
@@ -406,7 +406,7 @@ def create_twitch_eventsub(eventsub: dict):
         }
     ).json()
 
-    with SessionLocal() as session:
+    with Session(engine) as session:
         eventsub_crud.update_twitch_id(session, db_obj=eventsub, twitch_id=resp["data"][0]["id"])
 
 
@@ -427,7 +427,7 @@ def delete_twitch_eventsub(eventsub: dict):
             headers=twitch_headers,
         )
 
-    with SessionLocal() as session:
+    with Session(engine) as session:
         eventsub_crud.remove(session, uuid=eventsub.uuid)
 
 
@@ -446,7 +446,7 @@ def process_notification(message_id: str, subscription_type, data: dict):
     if result == 0:
         return
 
-    with SessionLocal() as session:
+    with Session(engine) as session:
 
         if hasattr(data, "broadcaster_user_id"):
             user = user_crud.get_by_twitch_id(session, data.broadcaster_user_id)

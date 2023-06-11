@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, Request
 from sqlmodel import Session
 
-from core.database import SessionLocal
+from core.database import engine
 from core.database.crud.users import crud
 from core.database.models.users import User
 
@@ -11,7 +11,7 @@ from config import settings
 
 
 def get_db():
-    with SessionLocal() as session:
+    with Session(engine) as session:
         yield session
 
 
