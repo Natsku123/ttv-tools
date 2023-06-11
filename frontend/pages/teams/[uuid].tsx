@@ -1,23 +1,26 @@
 import { useRouter } from 'next/router';
 import {Box, Button, Grid, Paper, Skeleton, Typography} from "@mui/material";
-import {useQuery, UseQueryResult} from "@tanstack/react-query";
+import {useMutation, useQuery, useQueryClient, UseQueryResult} from "@tanstack/react-query";
 import {Team, User} from "@/services/types";
 import {AxiosError} from "axios";
 import ErrorMessage from "@/components/ErrorMessage";
 import UserAvatar from "@/components/UserAvatar";
 import Link from "next/link";
 import { formatRFC7231 } from 'date-fns';
-import {getTeam} from "@/services/teams";
+import {deleteTeam, getTeam} from "@/services/teams";
 import {getCurrentUser} from "@/services/users";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 export default function TeamPage() {
     const router = useRouter();
+
+    const queryClient = useQueryClient();
 
     const {
         data,
         error,
         isLoading
-    }: UseQueryResult<Team, AxiosError> = useQuery(["team", router.query.uuid], () => getTeam(router.query.uuid), {
+    }: UseQueryResult<Team, AxiosError> = useQuery(["teams", router.query.uuid], () => getTeam(router.query.uuid), {
         retry:  false
     });
 
@@ -25,6 +28,14 @@ export default function TeamPage() {
         data: currentUser,
     }: UseQueryResult<User, AxiosError> = useQuery(["currentUser"], getCurrentUser, {
         retry:  false
+    });
+
+    const remove = useMutation({
+        mutationFn: deleteTeam,
+        onSuccess: async data => {
+            await queryClient.invalidateQueries({queryKey: ['teams']})
+            await queryClient.invalidateQueries({queryKey: ['teams', data.uuid]});
+        }
     });
 
     return <Paper>
@@ -54,6 +65,9 @@ export default function TeamPage() {
                       <Typography><b>Description</b>: {data.description}</Typography>
                       <Typography><b>Created on</b>: {data.created_on && formatRFC7231(new Date(data.created_on))}</Typography>
                       <Typography><b>Updated on</b>: {data.updated_on && formatRFC7231(new Date(data.updated_on))}</Typography>
+                      {currentUser?.is_superadmin && <Grid item>
+                        <Button variant={"outlined"} color={"error"} onClick={() => remove.mutate("uuid" in data ? data.uuid as string : "" )}><DeleteIcon /></Button>
+                      </Grid>}
                       <Box py={2}>
                         <Typography variant={"h4"}>Members</Typography>
                           { data.members && data.members.map((member) => <Grid container key={member.uuid}>

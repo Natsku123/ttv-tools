@@ -124,5 +124,6 @@ export {
     createTeam,
     deleteMember,
     updateMember,
-    updateTeam
+    updateTeam,
+    deleteTeam
 }

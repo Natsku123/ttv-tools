@@ -67,3 +67,12 @@ const redeemInvite = (uuid: string) => {
             .catch((error: AxiosError) => reject(error));
     });
 }
+
+export {
+    getInvites,
+    getInvite,
+    createInvite,
+    redeemInvite,
+    updateInvite,
+    deleteInvite
+}

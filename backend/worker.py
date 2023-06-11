@@ -17,6 +17,7 @@ from core.database.crud.eventsubs import crud as eventsub_crud
 from core.database.crud.users import crud as user_crud
 from core.database.crud.server import crud as server_crud
 from core.database import engine
+from core.twitch_tools import get_twitch_access_token
 
 from core.ipc.client import Client
 
@@ -25,18 +26,6 @@ app.conf.broker_url = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379")
 app.conf.result_backend = os.environ.get("CELERY_RESULT_BACKEND", "redis://redis:6379")
 
 TWITCH_MESSAGE_ID_SET_KEY = "twitchmessageids"
-
-
-def get_twitch_access_token() -> str:
-    token_res = requests.post(f"{settings.TWITCH_ID_URL}/token", headers={
-        "Content-Type": "application/x-www-form-urlencoded"
-    }, params={
-        "client_id": settings.TWITCH_CLIENT_ID,
-        "client_secret": settings.TWITCH_CLIENT_SECRET,
-        "grant_type": "client_credentials"
-    }).json()
-    return token_res["access_token"]
-
 
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):

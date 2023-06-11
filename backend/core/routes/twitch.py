@@ -1,10 +1,16 @@
 import json
 import hmac
 import hashlib
+import requests
 
-from fastapi import APIRouter, Header, Response, Request
+from fastapi import APIRouter, Header, Response, Request, Depends, Query
 
 from core.database.models.twitch import get_model_by_subscription_type
+from core.database.models.users import User
+
+from core.deps import get_current_user
+from core.twitch_tools import get_twitch_headers
+from core.routes import not_authorized
 
 from config import settings
 
@@ -13,6 +19,21 @@ from worker import process_notification
 router = APIRouter()
 
 HMAC_PREFIX = 'sha256='
+
+
+@router.get("/users/")
+async def get_twitch_users(current_user: User = Depends(get_current_user), login: list[str] = Query(description="Twitch usernames")):
+    if not current_user:
+        raise not_authorized()
+
+    twitch_headers = get_twitch_headers()
+
+    return requests.get(
+        f"{settings.TWITCH_API_URL}/users",
+        headers=twitch_headers,
+        params={
+            "login": login
+        }).json()
 
 
 @router.post("/event-sub/callback")

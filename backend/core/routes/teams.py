@@ -42,6 +42,8 @@ def get_teams(*, db: Session = Depends(get_db),
               current_user: User | None = Depends(get_current_user)):
     if not current_user:
         return [team.name for team in teams.crud.get_multi(db)]
+    elif not current_user.is_superadmin:
+        return current_user.teams
     else:
         return teams.crud.get_multi(db)
 
