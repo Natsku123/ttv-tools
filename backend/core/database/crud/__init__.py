@@ -1,5 +1,5 @@
 import json
-from sqlmodel import SQLModel, Session, asc, desc, col, select, func, update
+from sqlmodel import SQLModel, Session, asc, desc, col, select, func, update, delete
 
 from typing import Any, Generic, Optional, Type, TypeVar
 from fastapi import HTTPException
@@ -183,16 +183,17 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         else:
             update_data = obj_in.dict(exclude_unset=True)
 
-        db.execute(
+        result = db.scalars(
             update(self.model).where(self.model.uuid == db_obj.uuid).values(**update_data)
+            .returning(self.model)
         )
 
         db.commit()
-        db.refresh(db_obj)
-        return db_obj
+        return result.first()
 
     def remove(self, db: Session, *, uuid: Any) -> ModelType:
-        obj = db.query(self.model).get(uuid)
-        db.delete(obj)
+        result = db.scalars(
+            delete(self.model).where(self.model.uuid == uuid).returning(self.model)
+        )
         db.commit()
-        return obj
+        return result.first()
