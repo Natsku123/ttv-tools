@@ -8,10 +8,10 @@ from core.database.models.invites import TeamInvite, TeamInviteCreate, TeamInvit
 
 class CRUDTeamInvite(CRUDBase[TeamInvite, TeamInviteCreate, TeamInviteUpdate]):
     def get_by_twitch_id(self, db: Session, twitch_id: str) -> ModelType | TeamInvite:
-        return db.exec(select(self.model).filter(self.model.user_twitch_id == twitch_id)).first()
+        return db.execute(select(self.model).filter(self.model.user_twitch_id == twitch_id)).first()
 
     def get_by_team_uuid(self, db: Session, team_uuid: uuid.UUID) -> list[ModelType]:
-        return db.exec(select(self.model).filter(self.model.team_uuid == team_uuid)).all()
+        return db.execute(select(self.model).filter(self.model.team_uuid == team_uuid)).all()
 
 
 crud = CRUDTeamInvite(TeamInvite)

@@ -18,7 +18,7 @@ class CRUDEventSubscription(CRUDBase[EventSubscription, EventSubscriptionCreate,
 
         q = select(self.model).where(EventSubscription.user_uuid == user_uuid)
 
-        return db.exec(q.offset(skip).limit(limit)).all()
+        return db.execute(q.offset(skip).limit(limit)).all()
 
     def get_multi_by_user_uuid_and_event(
         self,
@@ -32,7 +32,7 @@ class CRUDEventSubscription(CRUDBase[EventSubscription, EventSubscriptionCreate,
 
         q = select(self.model).where(EventSubscription.user_uuid == user_uuid).where(EventSubscription.event == event)
 
-        return db.exec(q.offset(skip).limit(limit)).all()
+        return db.execute(q.offset(skip).limit(limit)).all()
 
     def update_twitch_id(
         self,
