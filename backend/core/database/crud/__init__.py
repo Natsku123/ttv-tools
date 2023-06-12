@@ -107,7 +107,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     def get(self, db: Session, uuid: Any) -> Optional[ModelType]:
         # return db.query(self.model).filter(self.model.id == id).first()
-        return db.execute(select(self.model).filter(self.model.uuid == uuid)).first()
+        return db.scalars(select(self.model).filter(self.model.uuid == uuid)).first()
 
     def get_multi(
         self,
@@ -160,7 +160,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
             q = q.order_by(*parse_order(order, self.model))
 
-        return db.execute(q.offset(skip).limit(limit)).all()
+        return db.scalars(q.offset(skip).limit(limit)).all()
 
     def create(self, db: Session, *, obj_in: CreateSchemaType) -> ModelType:
         obj_in_data = jsonable_encoder(obj_in)
