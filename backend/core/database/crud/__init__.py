@@ -1,5 +1,5 @@
 import json
-from sqlmodel import SQLModel, Session, asc, desc, col, select, func
+from sqlmodel import SQLModel, Session, asc, desc, col, select, func, update
 
 from typing import Any, Generic, Optional, Type, TypeVar
 from fastapi import HTTPException
@@ -177,18 +177,16 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db_obj: ModelType,
         obj_in: UpdateSchemaType | dict[str, Any]
     ) -> ModelType:
-        obj_data = jsonable_encoder(db_obj)
 
         if isinstance(obj_in, dict):
             update_data = obj_in
         else:
             update_data = obj_in.dict(exclude_unset=True)
 
-        for field in obj_data:
-            if field in update_data:
-                setattr(db_obj, field, update_data[field])
+        db.execute(
+            update(self.model).where(self.model.uuid == db_obj.uuid).values(**update_data)
+        )
 
-        db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
         return db_obj
