@@ -1,7 +1,12 @@
 import uuid
-from sqlmodel import Field, SQLModel
+import typing
+from sqlmodel import Field, SQLModel, Relationship
 
 from core.database.models import LinkObjectMixin
+
+if typing.TYPE_CHECKING:
+    from core.database.models.teams import Team
+    from core.database.models.users import User
 
 
 class Membership(SQLModel, LinkObjectMixin, table=True):
@@ -11,6 +16,9 @@ class Membership(SQLModel, LinkObjectMixin, table=True):
                                  primary_key=True)
     is_admin: bool = Field(description="Is admin of the team", default=False)
     allowed_invites: bool = Field(description="Is allowed to send invites", default=False)
+
+    team: "Team" = Relationship(back_populates="members")
+    user: "User" = Relationship(back_populates="teams")
 
     class Config:
         orm_mode = True

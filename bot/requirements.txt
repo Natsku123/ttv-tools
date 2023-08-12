@@ -2,3 +2,4 @@ nextcord
 nextcord-ext-ipc
 requests
 pydantic
+pydantic-settings

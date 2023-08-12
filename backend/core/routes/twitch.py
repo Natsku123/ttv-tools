@@ -22,18 +22,32 @@ HMAC_PREFIX = 'sha256='
 
 
 @router.get("/users/")
-async def get_twitch_users(current_user: User = Depends(get_current_user), login: list[str] = Query(description="Twitch usernames")):
+async def get_twitch_users(
+        current_user: User = Depends(get_current_user),
+        login: list[str] | None = Query(None, description="Twitch usernames"),
+        id: list[str] | None = Query(None, description="Twitch ids")
+):
     if not current_user:
         raise not_authorized()
 
     twitch_headers = get_twitch_headers()
 
-    return requests.get(
-        f"{settings.TWITCH_API_URL}/users",
-        headers=twitch_headers,
-        params={
-            "login": login
-        }).json()
+    if login:
+        return requests.get(
+            f"{settings.TWITCH_API_URL}/users",
+            headers=twitch_headers,
+            params={
+                "login": login
+            }).json()
+    elif id:
+        return requests.get(
+            f"{settings.TWITCH_API_URL}/users",
+            headers=twitch_headers,
+            params={
+                "id": id
+            }).json()
+    else:
+        return []
 
 
 @router.post("/event-sub/callback")

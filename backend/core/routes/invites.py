@@ -45,7 +45,7 @@ def get_invites(*, db: Session = Depends(get_db),
     if not current_user.is_superadmin:
         raise forbidden()
 
-    return teams.crud.get_multi(db)
+    return invites.crud.get_multi(db)
 
 
 @router.post("/", response_model=TeamInvite, tags=["invites"])
@@ -143,15 +143,19 @@ def redeem_invite(*,
     if not db_invite.user_twitch_id == current_user.twitch_id:
         raise forbidden()
 
+    team = teams.crud.get(db, db_invite.team_uuid)
+
+    is_first = len(team.members) == 0
+
     membership = MembershipCreate(**{
         "team_uuid": db_invite.team_uuid,
         "user_uuid": current_user.uuid,
-        "is_admin": False,
-        "allowed_invites": False
+        "is_admin": is_first,
+        "allowed_invites": is_first
     })
 
     memberships.crud.create(db, obj_in=membership)
 
-    invites.crud.remove(db, uuid=invite_uuid)
+    db_invite = invites.crud.remove(db, uuid=invite_uuid)
 
     return db_invite
