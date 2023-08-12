@@ -30,10 +30,10 @@ import Link from "next/link";
 import {QueryClient} from "@tanstack/query-core";
 
 interface FormValues {
-    user: User | undefined;
+    user: User | null;
     event: string;
-    server: DiscordServer;
-    channel: DiscordChannel;
+    server: DiscordServer | null;
+    channel: DiscordChannel | null;
     title: string;
     description: string;
 }
@@ -52,7 +52,7 @@ export default function EventsubsPage() {
 
     const queryClient = useQueryClient();
 
-    const { control, handleSubmit, watch, reset } = useForm<FormValues>({ mode: "onChange"});
+    const { control, handleSubmit, watch, reset } = useForm<FormValues>({ mode: "onChange", defaultValues: {user: null, description: "", channel: null, event: "", server: null, title: ""}});
 
     const {
         data: currentUser,

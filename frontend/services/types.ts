@@ -65,6 +65,9 @@ interface Membership extends Base {
     user_uuid: string;
     is_admin: boolean;
     allowed_invites: boolean;
+
+    team: Team;
+    user: User;
 }
 
 export type {

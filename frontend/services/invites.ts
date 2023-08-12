@@ -60,7 +60,7 @@ const deleteInvite = (uuid: string) => {
 const redeemInvite = (uuid: string) => {
     return new Promise<TeamInvite>(async (resolve, reject) => {
         client
-            .get(`/api/invites/${uuid}/redeem`)
+            .post(`/api/invites/${uuid}/redeem`)
             .then((res: AxiosResponse) => {
                 resolve(res.data);
             })

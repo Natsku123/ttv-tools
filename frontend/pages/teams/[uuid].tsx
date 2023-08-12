@@ -1,13 +1,13 @@
 import { useRouter } from 'next/router';
 import {Box, Button, Grid, Paper, Skeleton, Typography} from "@mui/material";
 import {useMutation, useQuery, useQueryClient, UseQueryResult} from "@tanstack/react-query";
-import {Team, User} from "@/services/types";
+import {Membership, Team, User} from "@/services/types";
 import {AxiosError} from "axios";
 import ErrorMessage from "@/components/ErrorMessage";
 import UserAvatar from "@/components/UserAvatar";
 import Link from "next/link";
 import { formatRFC7231 } from 'date-fns';
-import {deleteTeam, getTeam} from "@/services/teams";
+import {deleteTeam, getMembers, getTeam} from "@/services/teams";
 import {getCurrentUser} from "@/services/users";
 import DeleteIcon from "@mui/icons-material/Delete";
 
@@ -22,6 +22,12 @@ export default function TeamPage() {
         isLoading
     }: UseQueryResult<Team, AxiosError> = useQuery(["teams", router.query.uuid], () => getTeam(router.query.uuid), {
         retry:  false
+    });
+
+    const {
+        data: members,
+    }: UseQueryResult<Array<Membership>, AxiosError> = useQuery(["members", router.query.uuid], () => getMembers(router.query.uuid as string), {
+        enabled: !!router.query.uuid
     });
 
     const {
@@ -70,9 +76,9 @@ export default function TeamPage() {
                       </Grid>}
                       <Box py={2}>
                         <Typography variant={"h4"}>Members</Typography>
-                          { data.members && data.members.map((member) => <Grid container key={member.uuid}>
-                              <Grid item xs={4}><UserAvatar user={member} /></Grid>
-                              <Grid item xs={8}><Typography variant={"h5"}>{member.name}</Typography></Grid>
+                          { members && members.map((member) => <Grid container key={member.uuid}>
+                              <Grid item xs={4}><UserAvatar user={member.user} /></Grid>
+                              <Grid item xs={8}><Typography variant={"h5"}>{member.user.name}</Typography></Grid>
                               {currentUser?.is_superadmin && currentUser.is_superadmin &&
                                   <Grid item xs={12}>
                                     <Link href={`/users/${member.uuid}`} passHref><Button>Show</Button></Link>
