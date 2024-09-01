@@ -40,7 +40,7 @@ const HomePage = () => {
                             To get started, head over to <MuiLink><Link href={`/users/${currentUser.uuid}`}>your user
                             page</Link></MuiLink> and link your Discord. Then head over to <MuiLink>
                             <Link href={"/eventsubs"}>Events </Link></MuiLink> to create and manage your event
-                            subscriptions. If you haven't added the bot already to your server, click the "Add Bot"
+                            subscriptions. If you haven&apos;t added the bot already to your server, click the &quot;Add Bot&quot;
                             button to invite the bot.
                         </Typography>
                     </Grid>
