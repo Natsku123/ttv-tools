@@ -12,13 +12,13 @@ if typing.TYPE_CHECKING:
 
 
 class User(SQLModel, ObjectMixin, table=True):
-    discord_id: str = Field(
+    discord_id: int | None = Field(
         None,
-        sa_column=Column(String(64), nullable=True, unique=True),
+        unique=True,
         description="ID on discord",
     )
-    twitch_id: str = Field(
-        sa_column=Column(String(64), nullable=False, unique=True),
+    twitch_id: int = Field(
+        unique=True,
         description="ID on twitch"
     )
     name: str = Field(
@@ -44,13 +44,13 @@ class User(SQLModel, ObjectMixin, table=True):
         return data
 
     class Config:
-        orm_mode = True
-        allow_population_by_field_name = True
+        from_attributes = True
+        populate_by_name = True
 
 
 class UserCreate(SQLModel):
-    discord_id: str | None = Field(None, description="ID on discord")
-    twitch_id: str = Field(description="ID on twitch")
+    discord_id: int | None = Field(None, description="ID on discord")
+    twitch_id: int = Field(description="ID on twitch")
     name: str = Field(description="Twitch username of player")
     login_name: str = Field(description="Twitch login name")
     icon_url: str | None = Field(None, description="Twitch icon url")
@@ -58,15 +58,15 @@ class UserCreate(SQLModel):
     description: str | None = Field(None, description="Twitch description")
 
     class Config:
-        orm_mode = True
-        allow_population_by_field_name = True
+        from_attributes = True
+        populate_by_name = True
 
 
 class UserUpdate(SQLModel):
-    discord_id: str | None = Field(
+    discord_id: int | None = Field(
         None, description="ID on discord"
     )
-    twitch_id: str | None = Field(None, description="ID on twitch")
+    twitch_id: int | None = Field(None, description="ID on twitch")
     name: str | None = Field(None, description="Twitch username of player")
     login_name: str | None = Field(None, description="Twitch login name")
     icon_url: str | None = Field(None, description="Twitch icon url")
@@ -75,16 +75,16 @@ class UserUpdate(SQLModel):
     is_superadmin: bool | None = Field(False, description="Is user super admin")
 
     class Config:
-        orm_mode = True
-        allow_population_by_field_name = True
+        from_attributes = True
+        populate_by_name = True
 
 class UserShort(SQLModel, ObjectMixin):
-    discord_id: str = Field(
+    discord_id: int = Field(
         None,
         sa_column=Column(String(64), nullable=True, unique=True),
         description="ID on discord",
     )
-    twitch_id: str = Field(
+    twitch_id: int = Field(
         sa_column=Column(String(64), nullable=False, unique=True),
         description="ID on twitch"
     )

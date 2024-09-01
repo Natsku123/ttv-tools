@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Depends, Request, HTTPException
 from fastapi.openapi.utils import get_openapi
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.sessions import SessionMiddleware
 
 from authlib.integrations.starlette_client import OAuth
 from authlib.integrations.base_client.errors import UnsupportedTokenTypeError, \
@@ -11,6 +10,7 @@ from starlette.responses import RedirectResponse
 from sqlmodel import Session
 
 from config import settings
+from config.overrides import SessionMiddleware
 from core.database import SessionLocal
 from core.database.models import Meta
 from core.database.models.oauth import OAuth2Token
@@ -181,7 +181,7 @@ async def twitch_get(url: str, token: dict = None):
 
 @app.get("/twitch/login", tags=["oauth"], responses={302: {}})
 async def twitch_login(request: Request, redirect: str = None):
-    redirect_uri = settings.REDIRECT_URL + "/twitch/authorize"
+    redirect_uri = str(settings.REDIRECT_URL) + "twitch/authorize"
 
     if redirect is None:
         redirect = settings.SITE_HOSTNAME
@@ -193,7 +193,7 @@ async def twitch_login(request: Request, redirect: str = None):
 
 @app.get("/discord/login", tags=["oauth"], responses={302: {}})
 async def discord_login(request: Request, redirect: str = None):
-    redirect_uri = settings.REDIRECT_URL + "/discord/authorize"
+    redirect_uri = str(settings.REDIRECT_URL) + "discord/authorize"
 
     if redirect is None:
         redirect = settings.SITE_HOSTNAME

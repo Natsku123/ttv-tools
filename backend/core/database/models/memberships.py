@@ -21,8 +21,8 @@ class Membership(SQLModel, LinkObjectMixin, table=True):
     user: "User" = Relationship(back_populates="teams")
 
     class Config:
-        orm_mode = True
-        allow_population_by_field_name = True
+        from_attributes = True
+        populate_by_name = True
 
 
 class MembershipCreate(SQLModel):
@@ -34,8 +34,8 @@ class MembershipCreate(SQLModel):
     allowed_invites: bool | None = Field(False, description="Is allowed to send invites")
 
     class Config:
-        orm_mode = True
-        allow_population_by_field_name = True
+        from_attributes = True
+        populate_by_name = True
 
 
 class MembershipUpdate(SQLModel):
@@ -44,5 +44,5 @@ class MembershipUpdate(SQLModel):
                                          description="Is allowed to send invites")
 
     class Config:
-        orm_mode = True
-        allow_population_by_field_name = True
+        from_attributes = True
+        populate_by_name = True

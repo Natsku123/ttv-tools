@@ -2,3 +2,4 @@ celery
 nextcord
 nextcord-ext-ipc
 redis[hiredis]
+pydantic-settings

@@ -1,4 +1,4 @@
-fastapi
+fastapi==0.112.2
 Authlib
 sqlmodel
 alembic
@@ -9,3 +9,4 @@ psycopg2-binary
 nextcord
 nextcord-ext-ipc
 redis[hiredis]
+pydantic-settings

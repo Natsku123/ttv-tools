@@ -13,8 +13,8 @@ class Team(SQLModel, ObjectMixin, table=True):
     members: list["Membership"] = Relationship(back_populates="team")
 
     class Config:
-        orm_mode = True
-        allow_population_by_field_name = True
+        from_attributes = True
+        populate_by_name = True
 
 
 class TeamCreate(SQLModel):
@@ -22,8 +22,8 @@ class TeamCreate(SQLModel):
     description: str = Field(description="Description of team")
 
     class Config:
-        orm_mode = True
-        allow_population_by_field_name = True
+        from_attributes = True
+        populate_by_name = True
 
 
 class TeamUpdate(SQLModel):
@@ -31,8 +31,8 @@ class TeamUpdate(SQLModel):
     description: str | None = Field(None, description="Description of team")
 
     class Config:
-        orm_mode = True
-        allow_population_by_field_name = True
+        from_attributes = True
+        populate_by_name = True
 
 class TeamShort(SQLModel, ObjectMixin):
     name: str = Field(description="Name of team")

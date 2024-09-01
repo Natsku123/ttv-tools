@@ -45,8 +45,8 @@ class OAuth2Token(SQLModel, ObjectMixin, table=True):
         )
 
     class Config:
-        orm_mode = True
-        allow_population_by_field_name = True
+        from_attributes = True
+        populate_by_name = True
 
 
 class OAuth2TokenCreate(SQLModel):
@@ -68,8 +68,8 @@ class OAuth2TokenCreate(SQLModel):
     )
 
     class Config:
-        orm_mode = True
-        allow_population_by_field_name = True
+        from_attributes = True
+        populate_by_name = True
 
 
 class OAuth2TokenUpdate(SQLModel):
@@ -92,6 +92,6 @@ class OAuth2TokenUpdate(SQLModel):
     )
 
     class Config:
-        orm_mode = True
-        allow_population_by_field_name = True
+        from_attributes = True
+        populate_by_name = True
 

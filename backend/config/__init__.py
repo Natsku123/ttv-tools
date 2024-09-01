@@ -1,6 +1,7 @@
 import os
 import pytz
-from pydantic import BaseSettings, AnyHttpUrl, validator
+from pydantic_settings import BaseSettings
+from pydantic import AnyHttpUrl, validator
 
 
 def get_twitch_api_url():
@@ -34,9 +35,9 @@ class Settings(BaseSettings):
     TWITCH_CLIENT_ID: str = os.environ.get("TWITCH_CLIENT_ID")
     TWITCH_CLIENT_SECRET: str = os.environ.get("TWITCH_CLIENT_SECRET")
     BOT_TOKEN: str = os.environ.get("BOT_TOKEN", "NO TOKEN")
-    ROOT_PATH: str = os.environ.get("ROOT_PATH")
+    ROOT_PATH: str = os.environ.get("ROOT_PATH", "")
 
-    OWNER_TWITCH_ID: str = os.environ.get("OWNER_TWITCH_ID")
+    OWNER_TWITCH_ID: str = os.environ.get("OWNER_TWITCH_ID", "")
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
     def assemble_cors_origins(cls, v: str | list[str]) -> list[str] | str:
