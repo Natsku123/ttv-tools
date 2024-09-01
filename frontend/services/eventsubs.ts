@@ -38,15 +38,18 @@ const createEventSub = (eventsub: EventSubscription) => {
     });
 }
 
-const getEventSub = (uuid: string) => {
-    return new Promise<Array<EventSubscription>>(async (resolve, reject) => {
-        client
-            .get(`/api/eventsubs/${uuid}`)
-            .then((res: AxiosResponse) => {
-                resolve(res.data);
-            })
-            .catch((error: AxiosError) => reject(error));
-    });
+const getEventSub = (uuid: string | string[] | undefined) => {
+    if (uuid) {
+        return new Promise<Array<EventSubscription>>(async (resolve, reject) => {
+            client
+                .get(`/api/eventsubs/${uuid}`)
+                .then((res: AxiosResponse) => {
+                    resolve(res.data);
+                })
+                .catch((error: AxiosError) => reject(error));
+        });
+    }
+    return null;
 }
 
 const updateEventSub = (uuid: string, eventsub: EventSubscription) => {

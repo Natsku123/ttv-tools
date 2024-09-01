@@ -1,13 +1,15 @@
 import { useRouter } from 'next/router';
 import {Box, Button, Grid, Paper, Skeleton, Typography} from "@mui/material";
-import {useQuery, UseQueryResult} from "@tanstack/react-query";
-import {User} from "@/services/types";
+import {QueriesOptions, useQueries, useQuery, UseQueryResult} from "@tanstack/react-query";
+import {DiscordServer, EventSubscription, User} from "@/services/types";
 import {AxiosError} from "axios";
-import {getUser} from "@/services/users";
+import {getUser, getUsers} from "@/services/users";
 import ErrorMessage from "@/components/ErrorMessage";
 import UserAvatar from "@/components/UserAvatar";
 import Link from "next/link";
 import { formatRFC7231 } from 'date-fns';
+import {getEventSubsByUser} from "@/services/eventsubs";
+import {getDiscordServers} from "@/services/discord";
 
 export default function UserPage() {
     const router = useRouter();
