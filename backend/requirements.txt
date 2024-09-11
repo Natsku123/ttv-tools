@@ -1,6 +1,6 @@
-fastapi==0.112.2
+fastapi==0.114.1
 Authlib
-sqlmodel
+sqlmodel==0.0.22
 alembic
 pytz
 celery
