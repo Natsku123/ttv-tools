@@ -7,7 +7,8 @@ from core.deps import get_db, get_current_user
 from core.database.models.users import User
 from core.database.models.teams import Team, TeamUpdate, TeamCreate
 from core.database.models.invites import TeamInvite
-from core.database.models.memberships import Membership, MembershipUpdate
+from core.database.models.memberships import MembershipUpdate
+from core.database.models.readonly import MembershipRead, TeamRead, UserRead
 from core.database.crud import teams
 from core.database.crud import memberships
 from core.database.crud import invites
@@ -17,8 +18,9 @@ from core.routes import not_authorized, not_found, forbidden
 router = APIRouter()
 
 
-def check_membership(db: Session, current_user: User,
-                     team_uuid: uuid.UUID) -> Membership:
+def check_membership(
+    db: Session, current_user: User, team_uuid: uuid.UUID
+) -> MembershipRead:
     mship = memberships.crud.get_by_team_user_uuid(db, current_user.uuid, team_uuid)
 
     if not current_user.is_superadmin and mship is None:
@@ -27,8 +29,9 @@ def check_membership(db: Session, current_user: User,
     return mship
 
 
-def check_adminship(db: Session, current_user: User,
-                    team_uuid: uuid.UUID) -> Membership:
+def check_adminship(
+    db: Session, current_user: User, team_uuid: uuid.UUID
+) -> MembershipRead:
     mship = memberships.crud.get_by_team_user_uuid(db, current_user.uuid, team_uuid)
 
     if not current_user.is_superadmin and (mship is None or not mship.is_admin):
@@ -37,9 +40,12 @@ def check_adminship(db: Session, current_user: User,
     return mship
 
 
-@router.get("/", response_model=list[str | Team], tags=["teams"])
-def get_teams(*, db: Session = Depends(get_db),
-              current_user: User | None = Depends(get_current_user)):
+@router.get("/", response_model=list[str | TeamRead | MembershipRead], tags=["teams"])
+def get_teams(
+    *,
+    db: Session = Depends(get_db),
+    current_user: User | None | UserRead = Depends(get_current_user)
+) -> list[str | TeamRead | MembershipRead]:
     if not current_user:
         return [team.name for team in teams.crud.get_multi(db)]
     elif not current_user.is_superadmin:
@@ -48,12 +54,13 @@ def get_teams(*, db: Session = Depends(get_db),
         return teams.crud.get_multi(db)
 
 
-@router.post("/", response_model=Team, tags=["teams"])
-def create_teams(*,
-                 db: Session = Depends(get_db),
-                 current_user: User = Depends(get_current_user),
-                 team: TeamCreate = Body(..., description="Team")
-                 ):
+@router.post("/", response_model=TeamRead, tags=["teams"])
+def create_teams(
+    *,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    team: TeamCreate = Body(..., description="Team")
+) -> TeamRead:
     if not current_user:
         raise not_authorized()
 
@@ -64,12 +71,13 @@ def create_teams(*,
     return db_team
 
 
-@router.get("/{team_uuid}", response_model=Team, tags=["teams"])
-def get_team(*,
-             db: Session = Depends(get_db),
-             current_user: User = Depends(get_current_user),
-             team_uuid: uuid.UUID = Path(..., description="UUID of team")
-             ):
+@router.get("/{team_uuid}", response_model=TeamRead, tags=["teams"])
+def get_team(
+    *,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    team_uuid: uuid.UUID = Path(..., description="UUID of team")
+) -> TeamRead:
     if not current_user:
         raise not_authorized()
 
@@ -81,13 +89,15 @@ def get_team(*,
     return team
 
 
-@router.get("/{team_uuid}/invites", response_model=list[TeamInvite],
-            tags=["teams", "invites"])
-def get_invites_by_team(*,
-                        db: Session = Depends(get_db),
-                        current_user: User = Depends(get_current_user),
-                        team_uuid: uuid.UUID = Path(..., description="UUID of team")
-                        ):
+@router.get(
+    "/{team_uuid}/invites", response_model=list[TeamInvite], tags=["teams", "invites"]
+)
+def get_invites_by_team(
+    *,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    team_uuid: uuid.UUID = Path(..., description="UUID of team")
+) -> list[TeamInvite]:
     if not current_user:
         raise not_authorized()
 
@@ -101,14 +111,14 @@ def get_invites_by_team(*,
     return invites.crud.get_by_team_uuid(db, team_uuid)
 
 
-@router.put("/{team_uuid}", response_model=Team, tags=["teams"])
-def update_team(*,
-                db: Session = Depends(get_db),
-                current_user: User = Depends(get_current_user),
-                team_uuid: uuid.UUID = Path(..., description="UUID of team"),
-                team_update: TeamUpdate = Body(...,
-                                               description="Contents to be updated")
-                ):
+@router.put("/{team_uuid}", response_model=TeamRead, tags=["teams"])
+def update_team(
+    *,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    team_uuid: uuid.UUID = Path(..., description="UUID of team"),
+    team_update: TeamUpdate = Body(..., description="Contents to be updated")
+) -> TeamRead:
     if not current_user:
         raise not_authorized()
 
@@ -123,11 +133,13 @@ def update_team(*,
     return db_team
 
 
-@router.delete("/{team_uuid}", response_model=Team, tags=["team"])
-def delete_team(*,
-                current_user: User = Depends(get_current_user),
-                db: Session = Depends(get_db),
-                team_uuid: uuid.UUID = Path(..., description="UUID of team")):
+@router.delete("/{team_uuid}", response_model=TeamRead, tags=["team"])
+def delete_team(
+    *,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    team_uuid: uuid.UUID = Path(..., description="UUID of team")
+) -> TeamRead:
     if not current_user:
         raise not_authorized()
 
@@ -143,11 +155,13 @@ def delete_team(*,
     return db_team
 
 
-@router.get("/{team_uuid}/members", response_model=list[Membership])
-def get_members(*,
-                current_user: User = Depends(get_current_user),
-                db: Session = Depends(get_db),
-                team_uuid: uuid.UUID = Path(..., description="UUID of team")):
+@router.get("/{team_uuid}/members", response_model=list[MembershipRead])
+def get_members(
+    *,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    team_uuid: uuid.UUID = Path(..., description="UUID of team")
+) -> list[MembershipRead]:
     if not current_user:
         raise not_authorized()
 
@@ -184,12 +198,14 @@ def get_members(*,
 #     return membership
 
 
-@router.get("/{team_uuid}/members/{user_uuid}", response_model=Membership)
-def get_member(*,
-               current_user: User = Depends(get_current_user),
-               db: Session = Depends(get_db),
-               team_uuid: uuid.UUID = Path(..., description="UUID of team"),
-               user_uuid: uuid.UUID = Path(..., description="UUID of user")):
+@router.get("/{team_uuid}/members/{user_uuid}", response_model=MembershipRead)
+def get_member(
+    *,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    team_uuid: uuid.UUID = Path(..., description="UUID of team"),
+    user_uuid: uuid.UUID = Path(..., description="UUID of user")
+) -> MembershipRead:
     if not current_user:
         raise not_authorized()
 
@@ -208,13 +224,15 @@ def get_member(*,
     return membership
 
 
-@router.put("/{team_uuid}/members/{user_uuid}", response_model=Membership)
-def update_member(*,
-                  current_user: User = Depends(get_current_user),
-                  db: Session = Depends(get_db),
-                  team_uuid: uuid.UUID = Path(..., description="UUID of team"),
-                  user_uuid: uuid.UUID = Path(..., description="UUID of user"),
-                  member_update: MembershipUpdate = Body(..., description="Content to be updated")):
+@router.put("/{team_uuid}/members/{user_uuid}", response_model=MembershipRead)
+def update_member(
+    *,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    team_uuid: uuid.UUID = Path(..., description="UUID of team"),
+    user_uuid: uuid.UUID = Path(..., description="UUID of user"),
+    member_update: MembershipUpdate = Body(..., description="Content to be updated")
+) -> MembershipRead:
     if not current_user:
         raise not_authorized()
 
@@ -230,17 +248,21 @@ def update_member(*,
     if not db_membership:
         raise not_found("Membership")
 
-    db_membership = memberships.crud.update(db, db_obj=db_membership, obj_in=member_update)
+    db_membership = memberships.crud.update(
+        db, db_obj=db_membership, obj_in=member_update
+    )
 
     return db_membership
 
 
-@router.delete("/{team_uuid}/members/{user_uuid}", response_model=Membership)
-def remove_member(*,
-                  current_user: User = Depends(get_current_user),
-                  db: Session = Depends(get_db),
-                  team_uuid: uuid.UUID = Path(..., description="UUID of team"),
-                  user_uuid: uuid.UUID = Path(..., description="UUID of user")):
+@router.delete("/{team_uuid}/members/{user_uuid}", response_model=MembershipRead)
+def remove_member(
+    *,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    team_uuid: uuid.UUID = Path(..., description="UUID of team"),
+    user_uuid: uuid.UUID = Path(..., description="UUID of user")
+) -> MembershipRead:
     if not current_user:
         raise not_authorized()
 

@@ -33,7 +33,3 @@ class TeamUpdate(SQLModel):
     class Config:
         from_attributes = True
         populate_by_name = True
-
-class TeamShort(SQLModel, ObjectMixin):
-    name: str = Field(description="Name of team")
-    description: str = Field(description="Description of team")

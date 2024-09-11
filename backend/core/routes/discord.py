@@ -14,7 +14,7 @@ router = APIRouter()
 
 
 @router.get("/servers", response_model=list[DiscordServer], tags=["discord"])
-async def get_servers(*, current_user: User = Depends(get_current_user), ipc: Client = Depends(get_ipc)):
+async def get_servers(*, current_user: User = Depends(get_current_user), ipc: Client = Depends(get_ipc)) -> list[DiscordServer]:
     if not current_user:
         raise not_authorized()
 
@@ -35,7 +35,7 @@ async def get_servers(*, current_user: User = Depends(get_current_user), ipc: Cl
 
 
 @router.get("/servers/{server_id}", response_model=DiscordServer, tags=["discord"])
-async def get_server(*, current_user: User = Depends(get_current_user), ipc: Client = Depends(get_ipc), server_id: str = Path(..., description="ID of server")):
+async def get_server(*, current_user: User = Depends(get_current_user), ipc: Client = Depends(get_ipc), server_id: str = Path(..., description="ID of server")) -> DiscordServer:
     if not current_user:
         raise not_authorized()
 

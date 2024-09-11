@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends, Path, Body
 from sqlmodel import Session
 
-from core.database import Team
+from core.database.models.readonly import TeamRead, MembershipRead, UserRead
 from core.deps import get_db, get_current_user
 from core.database.models.users import User, UserUpdate
 from core.database.crud import users, memberships
@@ -13,16 +13,18 @@ from core.routes import not_authorized, not_found, forbidden
 router = APIRouter()
 
 
-@router.get("/", response_model=User, tags=["users"])
-def users_root(*, current_user: User = Depends(get_current_user)):
+@router.get("/", response_model=UserRead, tags=["users"])
+def users_root(*, current_user: User | UserRead = Depends(get_current_user)) -> UserRead:
     if not current_user:
         raise not_authorized()
 
     return current_user
 
 
-@router.get("/all", response_model=list[User], tags=["users"])
-def get_users(*, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+@router.get("/all", response_model=list[UserRead], tags=["users"])
+def get_users(
+    *, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+) -> list[UserRead]:
     if not current_user:
         raise not_authorized()
 
@@ -32,12 +34,13 @@ def get_users(*, current_user: User = Depends(get_current_user), db: Session = D
     return users.crud.get_multi(db)
 
 
-@router.get("/{user_uuid}", response_model=User, tags=["users"])
-def get_user(*,
-             current_user: User = Depends(get_current_user),
-             db: Session = Depends(get_db),
-             user_uuid: uuid.UUID = Path(..., description="UUID of user"),
-             ):
+@router.get("/{user_uuid}", response_model=UserRead, tags=["users"])
+def get_user(
+    *,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    user_uuid: uuid.UUID = Path(..., description="UUID of user"),
+) -> UserRead:
     if not current_user:
         raise not_authorized()
 
@@ -52,14 +55,14 @@ def get_user(*,
     return user
 
 
-@router.put("/{user_uuid", response_model=User, tags=["users"])
-def update_user(*,
-                current_user: User = Depends(get_current_user),
-                db: Session = Depends(get_db),
-                user_uuid: uuid.UUID = Path(..., description="UUID of user"),
-                user_update: UserUpdate = Body(...,
-                                               description="Contents to be updated")
-                ):
+@router.put("/{user_uuid", response_model=UserRead, tags=["users"])
+def update_user(
+    *,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    user_uuid: uuid.UUID = Path(..., description="UUID of user"),
+    user_update: UserUpdate = Body(..., description="Contents to be updated"),
+) -> UserRead:
     if not current_user:
         raise not_authorized()
 
@@ -78,11 +81,13 @@ def update_user(*,
     return db_user
 
 
-@router.delete("/{user_uuid}", response_model=User, tags=["users"])
-def delete_user(*,
-                current_user: User = Depends(get_current_user),
-                db: Session = Depends(get_db),
-                user_uuid: uuid.UUID = Path(..., description="UUID of user")):
+@router.delete("/{user_uuid}", response_model=UserRead, tags=["users"])
+def delete_user(
+    *,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    user_uuid: uuid.UUID = Path(..., description="UUID of user"),
+) -> UserRead:
     if not current_user:
         raise not_authorized()
 
@@ -99,12 +104,11 @@ def delete_user(*,
     return db_user
 
 
-@router.get("/teams", response_model=list[Team], tags=["users"])
-def get_teams(*,
-              current_user: User = Depends(get_current_user),
-              db: Session = Depends(get_db)):
+@router.get("/teams", response_model=list[TeamRead], tags=["users"])
+def get_teams(
+    *, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+) -> list[TeamRead]:
     if not current_user:
         raise not_authorized()
 
     return memberships.crud.get_by_user_uuid(db, current_user.uuid)
-

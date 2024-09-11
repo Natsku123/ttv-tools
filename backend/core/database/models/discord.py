@@ -1,6 +1,13 @@
 from pydantic import BaseModel
 
 
+class DiscordRole(BaseModel):
+    discord_id: int
+    name: str
+    color: tuple[int, int, int]
+    mention: str
+
+
 class DiscordChannel(BaseModel):
     discord_id: int
     name: str
@@ -22,3 +29,4 @@ class DiscordServer(BaseModel):
     description: str | None
     owner: DiscordUser
     channels: list[DiscordChannel]
+    roles: list[DiscordRole]

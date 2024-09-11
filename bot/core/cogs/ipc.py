@@ -31,7 +31,17 @@ def serialize_guild(guild: nextcord.Guild) -> dict:
         "icon_url": guild.icon.url if guild.icon else None,
         "description": guild.description,
         "owner": serialize_member(guild.owner),
-        "channels": serialize_channels(guild.text_channels)
+        "channels": serialize_channels(guild.text_channels),
+        "roles": serialize_roles(guild.roles)
+    }
+
+
+def serialize_role(role: nextcord.Role) -> dict:
+    return {
+        "discord_id": role.id,
+        "name": role.name,
+        "color": role.color.to_rgb(),
+        "mention": role.mention
     }
 
 
@@ -45,6 +55,10 @@ def serialize_channels(channels: list[nextcord.TextChannel | nextcord.VoiceChann
 
 def serialize_guilds(guilds: list[nextcord.Guild]) -> list[dict]:
     return [serialize_guild(g) for g in guilds]
+
+
+def serialize_roles(roles: list[nextcord.Role]) -> list[dict]:
+    return [serialize_role(r) for r in roles]
 
 
 class IpcRoutes(commands.Cog):

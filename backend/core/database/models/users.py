@@ -2,7 +2,7 @@ import datetime
 import typing
 import uuid
 
-from sqlmodel import Field, SQLModel, Column, String, Relationship
+from sqlmodel import Field, SQLModel, Column, String, Relationship, BigInteger
 
 from core.database.models import ObjectMixin
 from core.database.models.memberships import Membership
@@ -14,12 +14,12 @@ if typing.TYPE_CHECKING:
 class User(SQLModel, ObjectMixin, table=True):
     discord_id: int | None = Field(
         None,
-        unique=True,
         description="ID on discord",
+        sa_column=Column(BigInteger(), unique=True, nullable=True),
     )
     twitch_id: int = Field(
-        unique=True,
-        description="ID on twitch"
+        description="ID on twitch",
+        sa_column=Column(BigInteger(), unique=True, nullable=False),
     )
     name: str = Field(
         sa_column=Column(String(64), nullable=False),
@@ -63,9 +63,7 @@ class UserCreate(SQLModel):
 
 
 class UserUpdate(SQLModel):
-    discord_id: int | None = Field(
-        None, description="ID on discord"
-    )
+    discord_id: int | None = Field(None, description="ID on discord")
     twitch_id: int | None = Field(None, description="ID on twitch")
     name: str | None = Field(None, description="Twitch username of player")
     login_name: str | None = Field(None, description="Twitch login name")
@@ -77,23 +75,3 @@ class UserUpdate(SQLModel):
     class Config:
         from_attributes = True
         populate_by_name = True
-
-class UserShort(SQLModel, ObjectMixin):
-    discord_id: int = Field(
-        None,
-        sa_column=Column(String(64), nullable=True, unique=True),
-        description="ID on discord",
-    )
-    twitch_id: int = Field(
-        sa_column=Column(String(64), nullable=False, unique=True),
-        description="ID on twitch"
-    )
-    name: str = Field(
-        sa_column=Column(String(64), nullable=False),
-        description="Twitch username of player",
-    )
-    login_name: str | None = Field(None, description="Twitch login name")
-    icon_url: str | None = Field(None, description="Twitch icon url")
-    offline_image_url: str | None = Field(None, description="Twitch offline image url")
-    description: str | None = Field(None, description="Twitch description")
-    is_superadmin: bool | None = Field(False, description="Is user super admin")

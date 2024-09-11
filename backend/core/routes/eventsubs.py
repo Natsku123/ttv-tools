@@ -5,8 +5,11 @@ from sqlmodel import Session
 
 from core.deps import get_db, get_current_user
 from core.database.models.users import User
-from core.database.models.eventsubs import EventSubscription, EventSubscriptionCreate, \
-    EventSubscriptionUpdate
+from core.database.models.eventsubs import (
+    EventSubscription,
+    EventSubscriptionCreate,
+    EventSubscriptionUpdate,
+)
 from core.database.crud import eventsubs, memberships
 
 from worker import create_twitch_eventsub, delete_twitch_eventsub
@@ -24,8 +27,9 @@ def check_feature_availability(db: Session, current_user: User) -> None:
 
 
 @router.get("/", response_model=list[EventSubscription], tags=["eventsubs"])
-def get_eventsubs(*, db: Session = Depends(get_db),
-                  current_user: User = Depends(get_current_user)):
+def get_eventsubs(
+    *, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+) -> list[EventSubscription]:
     if not current_user:
         raise not_authorized()
 
@@ -34,11 +38,15 @@ def get_eventsubs(*, db: Session = Depends(get_db),
     return eventsubs.crud.get_multi_by_user_uuid(db, current_user.uuid)
 
 
-@router.get("/user/{user_uuid}", response_model=list[EventSubscription],
-            tags=["eventsubs"])
-def get_eventsubs_by_user(*, db: Session = Depends(get_db),
-                          current_user: User = Depends(get_current_user),
-                          user_uuid: uuid.UUID = Path(..., description="UUID of user")):
+@router.get(
+    "/user/{user_uuid}", response_model=list[EventSubscription], tags=["eventsubs"]
+)
+def get_eventsubs_by_user(
+    *,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    user_uuid: uuid.UUID = Path(..., description="UUID of user")
+) -> list[EventSubscription]:
     if not current_user:
         raise not_authorized()
 
@@ -49,12 +57,12 @@ def get_eventsubs_by_user(*, db: Session = Depends(get_db),
 
 
 @router.post("/", response_model=EventSubscription, tags=["eventsubs"])
-def create_eventsub(*,
-                    db: Session = Depends(get_db),
-                    current_user: User = Depends(get_current_user),
-                    eventsub: EventSubscriptionCreate = Body(...,
-                                                             description="Eventsubscription")
-                    ):
+def create_eventsub(
+    *,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    eventsub: EventSubscriptionCreate = Body(..., description="Eventsubscription")
+) -> EventSubscription:
     if not current_user:
         raise not_authorized()
 
@@ -71,12 +79,12 @@ def create_eventsub(*,
 
 
 @router.get("/{eventsub_uuid}", response_model=EventSubscription, tags=["eventsubs"])
-def get_eventsub(*,
-                 db: Session = Depends(get_db),
-                 current_user: User = Depends(get_current_user),
-                 eventsub_uuid: uuid.UUID = Path(...,
-                                                 description="UUID of Event subscription")
-                 ):
+def get_eventsub(
+    *,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    eventsub_uuid: uuid.UUID = Path(..., description="UUID of Event subscription")
+) -> EventSubscription:
     if not current_user:
         raise not_authorized()
 
@@ -94,14 +102,15 @@ def get_eventsub(*,
 
 
 @router.put("/{eventsub_uuid}", response_model=EventSubscription, tags=["eventsubs"])
-def update_eventsub(*,
-                    db: Session = Depends(get_db),
-                    current_user: User = Depends(get_current_user),
-                    eventsub_uuid: uuid.UUID = Path(...,
-                                                    description="UUID of Event subscription"),
-                    eventsub_update: EventSubscriptionUpdate = Body(...,
-                                                                    description="Contents to be updated")
-                    ):
+def update_eventsub(
+    *,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    eventsub_uuid: uuid.UUID = Path(..., description="UUID of Event subscription"),
+    eventsub_update: EventSubscriptionUpdate = Body(
+        ..., description="Contents to be updated"
+    )
+) -> EventSubscription:
     if not current_user:
         raise not_authorized()
 
@@ -120,11 +129,12 @@ def update_eventsub(*,
 
 
 @router.delete("/{eventsub_uuid}", response_model=EventSubscription, tags=["eventsubs"])
-def delete_eventsub(*,
-                    current_user: User = Depends(get_current_user),
-                    db: Session = Depends(get_db),
-                    eventsub_uuid: uuid.UUID = Path(...,
-                                                    description="UUID of Event Subscription")):
+def delete_eventsub(
+    *,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    eventsub_uuid: uuid.UUID = Path(..., description="UUID of Event Subscription")
+) -> EventSubscription:
     if not current_user:
         raise not_authorized()
 
@@ -136,7 +146,7 @@ def delete_eventsub(*,
     if not current_user.is_superadmin and current_user.uuid != db_eventsub.user_uuid:
         raise forbidden()
 
-    #eventsubs.crud.remove(db, uuid=eventsub_uuid)
+    # eventsubs.crud.remove(db, uuid=eventsub_uuid)
     delete_twitch_eventsub.delay(db_eventsub.dict())
 
     return db_eventsub

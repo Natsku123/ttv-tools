@@ -18,17 +18,16 @@ router = APIRouter()
 
 
 def check_invite_permissions(
-        db: Session,
-        current_user: User,
-        invite: TeamInvite | TeamInviteCreate
+    db: Session, current_user: User, invite: TeamInvite | TeamInviteCreate
 ) -> tuple[Team, Membership]:
     db_team = teams.crud.get(db, invite.team_uuid)
 
     if not db_team:
         raise not_found("Team")
 
-    mship = memberships.crud.get_by_team_user_uuid(db, current_user.uuid,
-                                                   invite.team_uuid)
+    mship = memberships.crud.get_by_team_user_uuid(
+        db, current_user.uuid, invite.team_uuid
+    )
 
     if not current_user.is_superadmin and (mship is None or not mship.is_admin):
         raise forbidden()
@@ -37,8 +36,11 @@ def check_invite_permissions(
 
 
 @router.get("/", response_model=list[TeamInvite], tags=["invites"])
-def get_invites(*, db: Session = Depends(get_db),
-                current_user: User | None = Depends(get_current_user)):
+def get_invites(
+    *,
+    db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_current_user)
+) -> list[TeamInvite]:
     if not current_user:
         raise not_authorized()
 
@@ -49,11 +51,12 @@ def get_invites(*, db: Session = Depends(get_db),
 
 
 @router.post("/", response_model=TeamInvite, tags=["invites"])
-def create_invite(*,
-                  db: Session = Depends(get_db),
-                  current_user: User = Depends(get_current_user),
-                  invite: TeamInviteCreate = Body(..., description="Invite")
-                  ):
+def create_invite(
+    *,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    invite: TeamInviteCreate = Body(..., description="Invite")
+) -> TeamInvite:
     if not current_user:
         raise not_authorized()
 
@@ -67,11 +70,12 @@ def create_invite(*,
 
 
 @router.get("/{invite_uuid}", response_model=TeamInvite, tags=["invites"])
-def get_invite(*,
-               db: Session = Depends(get_db),
-               current_user: User = Depends(get_current_user),
-               invite_uuid: uuid.UUID = Path(..., description="UUID of invite")
-               ):
+def get_invite(
+    *,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    invite_uuid: uuid.UUID = Path(..., description="UUID of invite")
+) -> TeamInvite:
     if not current_user:
         raise not_authorized()
 
@@ -86,13 +90,13 @@ def get_invite(*,
 
 
 @router.put("/{invite_uuid}", response_model=TeamInvite, tags=["invites"])
-def update_invite(*,
-                  db: Session = Depends(get_db),
-                  current_user: User = Depends(get_current_user),
-                  invite_uuid: uuid.UUID = Path(..., description="UUID of invite"),
-                  invite_update: TeamInviteUpdate = Body(...,
-                                                         description="Contents to be updated")
-                  ):
+def update_invite(
+    *,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    invite_uuid: uuid.UUID = Path(..., description="UUID of invite"),
+    invite_update: TeamInviteUpdate = Body(..., description="Contents to be updated")
+) -> TeamInvite:
     if not current_user:
         raise not_authorized()
 
@@ -108,10 +112,12 @@ def update_invite(*,
 
 
 @router.delete("/{invite_uuid}", response_model=TeamInvite, tags=["invites"])
-def delete_invite(*,
-                  current_user: User = Depends(get_current_user),
-                  db: Session = Depends(get_db),
-                  invite_uuid: uuid.UUID = Path(..., description="UUID of invite")):
+def delete_invite(
+    *,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    invite_uuid: uuid.UUID = Path(..., description="UUID of invite")
+) -> TeamInvite:
     if not current_user:
         raise not_authorized()
 
@@ -128,10 +134,12 @@ def delete_invite(*,
 
 
 @router.post("/{invite_uuid}/redeem", response_model=TeamInvite, tags=["invites"])
-def redeem_invite(*,
-                  current_user: User = Depends(get_current_user),
-                  db: Session = Depends(get_db),
-                  invite_uuid: uuid.UUID = Path(..., description="UUID of invite")):
+def redeem_invite(
+    *,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    invite_uuid: uuid.UUID = Path(..., description="UUID of invite")
+) -> TeamInvite:
     if not current_user:
         raise not_authorized()
 
@@ -147,12 +155,14 @@ def redeem_invite(*,
 
     is_first = len(team.members) == 0
 
-    membership = MembershipCreate(**{
-        "team_uuid": db_invite.team_uuid,
-        "user_uuid": current_user.uuid,
-        "is_admin": is_first,
-        "allowed_invites": is_first
-    })
+    membership = MembershipCreate(
+        **{
+            "team_uuid": db_invite.team_uuid,
+            "user_uuid": current_user.uuid,
+            "is_admin": is_first,
+            "allowed_invites": is_first,
+        }
+    )
 
     memberships.crud.create(db, obj_in=membership)
 

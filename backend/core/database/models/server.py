@@ -1,16 +1,17 @@
-from sqlmodel import Field, SQLModel, Column, String
+from sqlmodel import Field, SQLModel, Column, String, BigInteger
 
 from core.database.models import ObjectMixin
 
 
 class Server(SQLModel, ObjectMixin, table=True):
     discord_id: int = Field(
-        unique=True,
         description="ID on discord",
+        sa_column=Column(BigInteger(), unique=True, nullable=False),
     )
     discord_channel_id: int | None = Field(
         None,
-        description="ID of subscription channel on discord"
+        description="ID of subscription channel on discord",
+        sa_column=Column(BigInteger(), unique=False, nullable=True),
     )
 
     class Config:
@@ -20,7 +21,9 @@ class Server(SQLModel, ObjectMixin, table=True):
 
 class ServerCreate(SQLModel):
     discord_id: int = Field(description="ID on discord")
-    discord_channel_id: int | None = Field(None, description="ID of subscription channel on discord")
+    discord_channel_id: int | None = Field(
+        None, description="ID of subscription channel on discord"
+    )
 
     class Config:
         from_attributes = True
@@ -29,8 +32,9 @@ class ServerCreate(SQLModel):
 
 class ServerUpdate(SQLModel):
     discord_id: int | None = Field(None, description="ID on discord")
-    discord_channel_id: int | None = Field(None,
-                                           description="ID of subscription channel on discord")
+    discord_channel_id: int | None = Field(
+        None, description="ID of subscription channel on discord"
+    )
 
     class Config:
         from_attributes = True
