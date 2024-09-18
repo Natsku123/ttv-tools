@@ -1,21 +1,40 @@
 'use client'
 import {Box, Button, Grid, Paper, Skeleton, Typography} from "@mui/material";
-import {useQuery, UseQueryResult} from "@tanstack/react-query";
+import {useMutation, useQuery, useQueryClient, UseQueryResult} from "@tanstack/react-query";
 import {User} from "@/src/services/types";
 import {AxiosError} from "axios";
-import {getUser} from "@/src/services/users";
+import {deleteUser, getCurrentUser, getUser} from "@/src/services/users";
 import ErrorMessage from "@/src/components/ErrorMessage";
 import UserAvatar from "@/src/components/UserAvatar";
 import Link from "next/link";
 import {formatRFC7231} from 'date-fns';
+import DeleteIcon from "@mui/icons-material/Delete";
+import {redirect} from "next/navigation";
 
 export default function UserPage({params}: { params: { uuid: string } }) {
+    const queryClient = useQueryClient();
+
     const {
         data,
         error,
         isLoading
     }: UseQueryResult<User, AxiosError> = useQuery(["user", params.uuid], () => getUser(params.uuid), {
         retry: false
+    });
+
+    const {
+        data: currentUser,
+    }: UseQueryResult<User, AxiosError> = useQuery(["currentUser"], getCurrentUser, {
+        retry: false
+    });
+
+    const remove = useMutation({
+        mutationFn: deleteUser,
+        onSuccess: async data => {
+            await queryClient.invalidateQueries({queryKey: ['users']})
+            await queryClient.invalidateQueries({queryKey: ['users', data.uuid]});
+            redirect("/")
+        }
     });
 
     return <Paper>
@@ -65,13 +84,22 @@ export default function UserPage({params}: { params: { uuid: string } }) {
                                         <Link href={"/api/discord/login"}><Button color={"success"}
                                                                                   variant={"outlined"}>Link</Button></Link>}
                                 </Grid>
+                                <Grid item xs={12} />
+                                {currentUser && currentUser.uuid === data.uuid &&
+                                    <Grid item><Button color={"error"} href={"/api/logout"}
+                                                       variant={"outlined"}>Logout</Button></Grid>}
+                                {currentUser && (currentUser.is_superadmin || currentUser.uuid === data.uuid) &&
+                                    <Grid item><Button color={"error"} variant={"outlined"}
+                                                       onClick={() => remove.mutate("uuid" in data ? data.uuid as string : "")}><DeleteIcon/></Button></Grid>}
                             </Grid>
                             <Box py={2}>
                                 <Typography variant={"h4"}>Teams</Typography>
                                 <Box py={2}>
-                                    {data.teams && data.teams.map((team) => <Grid container key={team.team_uuid} spacing={2}>
+                                    {data.teams && data.teams.map((team) => <Grid container key={team.team_uuid}
+                                                                                  spacing={2}>
                                         <Grid item><Typography variant={"h5"}>{team.team.name}</Typography></Grid>
-                                        <Grid item><Link href={`/teams/${team.team_uuid}`} passHref><Button>Show</Button></Link></Grid>
+                                        <Grid item><Link href={`/teams/${team.team_uuid}`}
+                                                         passHref><Button>Show</Button></Link></Grid>
                                     </Grid>)}
                                 </Box>
                             </Box>

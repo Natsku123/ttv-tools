@@ -79,7 +79,7 @@ export default function TeamPage({params}: { params: { uuid: string } }) {
                             </Box>
                             <Typography variant={"h4"}>Members</Typography>
                             <Box py={2}>
-                                {members && members.map((member) => <Grid container key={member.user_uuid} spacing={2}>
+                                {members && members.map((member) => <Box py={1} key={member.user_uuid}><Grid container spacing={2}>
                                     <Grid item><UserAvatar user={member.user}/></Grid>
                                     <Grid item><Typography variant={"h5"}>{member.user.name}</Typography></Grid>
                                     {currentUser?.is_superadmin && currentUser.is_superadmin &&
@@ -87,7 +87,7 @@ export default function TeamPage({params}: { params: { uuid: string } }) {
                                             <Link href={`/users/${member.user_uuid}`} passHref><Button>Show</Button></Link>
                                         </Grid>
                                     }
-                                </Grid>)}
+                                </Grid></Box>)}
                             </Box>
                         </Grid>
                     </Grid>

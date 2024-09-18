@@ -8,6 +8,7 @@ import {getTwitchUsersById} from "@/src/services/twitch";
 import {getTeam} from "@/src/services/teams";
 import {Avatar, Box, Button, Grid, Paper, Typography} from "@mui/material";
 import ErrorMessage from "@/src/components/ErrorMessage";
+import {redirect} from "next/navigation";
 
 export default function RedeemInvitePage({params}: { params: { uuid: string } }) {
     const queryClient = useQueryClient();
@@ -22,6 +23,7 @@ export default function RedeemInvitePage({params}: { params: { uuid: string } })
 
     const {
         data: currentUser,
+        isError: isUserError
     }: UseQueryResult<User, AxiosError> = useQuery(["currentUser"], getCurrentUser, {
         retry: false
     });
@@ -50,17 +52,28 @@ export default function RedeemInvitePage({params}: { params: { uuid: string } })
         onSuccess: async data => {
             await queryClient.invalidateQueries({queryKey: ['invites']})
             await queryClient.invalidateQueries({queryKey: ['invites', data.uuid]});
+            redirect("/")
         }
     });
 
     return <Paper>
         <Box px={2} py={4}>
-            {isLoading ? <>
+            {isLoading && !isUserError ? <>
                 loading
             </> : <>
-                {error && <ErrorMessage code={error.code} message={error.message}/>}
-                {data && <>
-                    {currentUser?.twitch_id === data.user_twitch_id ? <>
+                {isUserError && <>
+                    <Grid container spacing={2} justifyContent={"center"} alignItems={"center"} direction={"column"}>
+                        <Grid item xs>
+                            <Typography variant={"h3"}>Login to continue</Typography>
+                        </Grid>
+                        <Grid item xs>
+                            <Button href={`/api/twitch/login?redirect=invites/redeem/${params.uuid}`} size={"large"}>Login</Button>
+                        </Grid>
+                    </Grid>
+                </>}
+                {error && !isUserError && <ErrorMessage code={error.code} message={error.message}/>}
+                {data && !isUserError && currentUser && <>
+                    {currentUser.twitch_id.toString() === data.user_twitch_id ? <>
                         <Grid container spacing={2} justifyContent={"center"} alignItems={"center"} direction="column">
                             <Grid item>
                                 {twitch_users && <Avatar alt={twitch_users.data[0].display_name}

@@ -11,7 +11,7 @@ import {
 import {DiscordChannel, DiscordRole, DiscordServer, EventSubscription, User} from "@/src/services/types";
 import {AxiosError} from "axios";
 import {getCurrentUser, getUsers} from "@/src/services/users";
-import {createEventSub, deleteEventSub, getEventSubsByUser} from "@/src/services/eventsubs";
+import {createEventSub, deleteEventSub, getEventSubs, getEventSubsByUser} from "@/src/services/eventsubs";
 import ErrorMessage from "@/src/components/ErrorMessage";
 import {
     Autocomplete,
@@ -56,13 +56,15 @@ export default function EventsubsPage() {
     });
 
     const userUuid = currentUser?.uuid;
+    const isSuperAdmin = currentUser?.is_superadmin;
+    const discordId = currentUser?.discord_id;
 
     const selectedDServer = watch('server');
 
     const queries: Array<QueriesOptions<any>> = [
         {
             queryKey: ["eventsubs"],
-            queryFn: () => getEventSubsByUser(userUuid),
+            queryFn: () => isSuperAdmin ? getEventSubsByUser(userUuid) : getEventSubs(),
             options: {
                 enabled: !!userUuid,
             }
@@ -71,14 +73,16 @@ export default function EventsubsPage() {
             queryKey: ["users"],
             queryFn: getUsers,
             options: {
-                enabled: currentUser && currentUser.is_superadmin,
+                enabled: !!isSuperAdmin,
+                retry: !!isSuperAdmin
             }
         },
         {
             queryKey: ["discordServers"],
             queryFn: getDiscordServers,
             options: {
-                enabled: !!currentUser?.discord_id
+                enabled: !!discordId,
+                retry: !!discordId
             }
         }
     ];
@@ -179,11 +183,11 @@ export default function EventsubsPage() {
         const message = (data.role && data.message) ? `${data.role.mention} ${data.message}` : data.role ? data.role.mention : data.message ? data.message : "";
 
         const eventSub: EventSubscription = {
-            channel_discord_id: data.channel.discord_id,
+            channel_discord_id: data.channel ? data.channel.discord_id : "",
             custom_description: data.description,
             custom_title: data.title,
             event: data.event,
-            server_discord_id: data.server.discord_id,
+            server_discord_id: data.server ? data.server.discord_id : "",
             user_uuid: data.user.uuid,
             message: message
         };
@@ -197,8 +201,8 @@ export default function EventsubsPage() {
     return (
         <Box px={2} py={2}>
             <Grid container spacing={2}>
-                {error &&
-                    <Grid item xs={12}><Paper><ErrorMessage code={error.code} message={error.message}/></Paper></Grid>}
+                {error && error.code === "ERR_BAD_REQUEST" &&
+                    <Grid item xs={12}><Paper><Box px={2} py={2}><Typography variant={"h3"}>Feature not available :(</Typography></Box></Paper></Grid>}
                 <Grid item xs={12} md={6}>
                     {!isLoading ? <>
                         {eventsubs && eventsubs.length > 0 ? <>
@@ -228,7 +232,7 @@ export default function EventsubsPage() {
                             found!</Typography></Box></Paper>}
                     </> : <>
                         {[1, 2, 3].map(i => <Paper key={"skeleton-" + i}>
-                            <Box py={2} px={2}>
+                            <Box py={2} px={2} my={2}>
                                 <Grid container justifyContent={"space-between"} alignItems={"center"}>
                                     <Grid item xs={8}>
                                         <Typography><Skeleton variant="text" width={300}/></Typography>
