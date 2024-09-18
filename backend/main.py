@@ -179,12 +179,15 @@ async def twitch_get(url: str, token: dict = None):
         return await oauth.twitch.get(f"{settings.TWITCH_API_URL}/{url}",
                                       headers={'Client-Id': settings.TWITCH_CLIENT_ID})
 
+
 @app.get("/twitch/login", tags=["oauth"], responses={302: {}})
 async def twitch_login(request: Request, redirect: str = None):
     redirect_uri = str(settings.REDIRECT_URL) + "twitch/authorize"
 
     if redirect is None:
         redirect = settings.SITE_HOSTNAME
+    else:
+        redirect = str(settings.SITE_HOSTNAME) + redirect
 
     request.session["redirect_url"] = redirect
 

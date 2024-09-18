@@ -50,8 +50,10 @@ def get_eventsubs_by_user(
     if not current_user:
         raise not_authorized()
 
-    if not current_user.is_superadmin:
+    if not current_user.is_superadmin and current_user.uuid != user_uuid:
         raise forbidden()
+
+    check_feature_availability(db, current_user)
 
     return eventsubs.crud.get_multi_by_user_uuid(db, user_uuid)
 

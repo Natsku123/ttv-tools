@@ -44,7 +44,7 @@ def get_user(
     if not current_user:
         raise not_authorized()
 
-    if not current_user.is_superadmin or user_uuid != current_user.uuid:
+    if not current_user.is_superadmin and user_uuid != current_user.uuid:
         raise forbidden()
 
     user = users.crud.get(db, user_uuid)
