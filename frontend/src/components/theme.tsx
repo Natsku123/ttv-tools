@@ -3,6 +3,7 @@ import NextLink from 'next/link';
 import {forwardRef} from "react";
 
 const LinkBehaviour = forwardRef(function LinkBehaviour(props, ref) {
+    // @ts-ignore
     return <NextLink ref={ref} {...props} />;
 });
 
