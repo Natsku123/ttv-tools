@@ -10,10 +10,11 @@ import {getCurrentUser} from "@/src/services/users";
 import DeleteIcon from "@mui/icons-material/Delete";
 import {deleteInvite, getInvite} from "@/src/services/invites";
 import {getTwitchUsersById} from "@/src/services/twitch";
-import {redirect} from "next/navigation";
+import {useRouter} from "next/navigation";
 
 export default function InvitePage({params}: { params: { uuid: string } }) {
     const queryClient = useQueryClient();
+    const router = useRouter();
 
     const {
         data,
@@ -54,7 +55,7 @@ export default function InvitePage({params}: { params: { uuid: string } }) {
         onSuccess: async data => {
             await queryClient.invalidateQueries({queryKey: ['invites']})
             await queryClient.invalidateQueries({queryKey: ['invites', data.uuid]});
-            redirect("/invites")
+            router.push("/invites");
         }
     });
 

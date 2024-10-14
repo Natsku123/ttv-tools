@@ -196,13 +196,12 @@ export default function EventsubsPage() {
 
     };
 
-    const requiredRules: RegisterOptions = {required: true};
-
     return (
         <Box px={2} py={2}>
             <Grid container spacing={2}>
                 {error && error.code === "ERR_BAD_REQUEST" &&
-                    <Grid item xs={12}><Paper><Box px={2} py={2}><Typography variant={"h3"}>Feature not available :(</Typography></Box></Paper></Grid>}
+                    <Grid item xs={12}><Paper><Box px={2} py={2}><Typography variant={"h3"}>Feature not available
+                        :(</Typography></Box></Paper></Grid>}
                 <Grid item xs={12} md={6}>
                     {!isLoading ? <>
                         {eventsubs && eventsubs.length > 0 ? <>
@@ -261,64 +260,66 @@ export default function EventsubsPage() {
                                     <Controller
                                         render={({field}) => <Autocomplete
                                             {...field}
-                                            isOptionEqualToValue={(o, v) => o.uuid === v.uuid}
-                                            getOptionLabel={(option) => option.name}
+                                            isOptionEqualToValue={(o, v) => o && v && o.uuid === v.uuid}
+                                            getOptionLabel={(option) => option.name || ""}
                                             renderInput={(params) => <TextField {...params} label="User"
                                                                                 margin="normal"/>}
-                                            options={users ? users : []}
+                                            options={users || []}
                                             onChange={(_, data) => field.onChange(data)}/>}
                                         name="user" control={control}/>
                                 }
                                 <Controller
                                     render={({field}) => <Autocomplete
                                         {...field}
+                                        getOptionLabel={(option) => option || ""}
+                                        isOptionEqualToValue={(o, v) => o === v}
                                         renderInput={(params) => <TextField {...params} label="Event" margin="normal"/>}
                                         options={eventOptions}
                                         onChange={(_, data) => field.onChange(data)}/>}
-                                    name="event" control={control} rules={requiredRules}/>
+                                    name="event" control={control} rules={{required: true,}}/>
                                 <Controller
                                     render={({field}) => <Autocomplete
                                         {...field}
-                                        getOptionLabel={(option) => option.name}
-                                        isOptionEqualToValue={(o, v) => o.discord_id === v.discord_id}
+                                        getOptionLabel={(option) => option.name || ""}
+                                        isOptionEqualToValue={(o, v) => o && v && o.discord_id === v.discord_id}
                                         renderInput={(params) => <TextField {...params}
                                                                             helperText={"If you aren't seeing your server, add the bot to the server below."}
                                                                             label="Discord Server" margin="normal"/>}
                                         options={discordServers ? discordServers : []}
                                         onChange={(_, data) => field.onChange(data)}/>}
-                                    name="server" control={control} rules={requiredRules}/>
+                                    name="server" control={control} rules={{required: true,}}/>
                                 <Controller
                                     render={({field}) => <Autocomplete
                                         {...field}
-                                        getOptionLabel={(option) => option.name}
-                                        isOptionEqualToValue={(o, v) => o.discord_id === v.discord_id}
+                                        getOptionLabel={(option) => option.name || ""}
+                                        isOptionEqualToValue={(o, v) => o && v && o.discord_id === v.discord_id}
                                         renderInput={(params) => <TextField {...params} label="Discord Channel"
                                                                             margin="normal"/>}
                                         options={selectedDServer ? selectedDServer.channels : []}
                                         onChange={(_, data) => field.onChange(data)}/>}
-                                    name="channel" control={control} rules={requiredRules}/>
+                                    name="channel" control={control} rules={{required: true,}}/>
                                 <Controller
                                     render={({field}) => <Autocomplete
                                         {...field}
-                                        getOptionLabel={(option) => option.name}
-                                        isOptionEqualToValue={(o, v) => o.discord_id === v.discord_id}
+                                        getOptionLabel={(option) => option.name || ""}
+                                        isOptionEqualToValue={(o, v) => o && v && o.discord_id === v.discord_id}
                                         renderInput={(params) => <TextField {...params} label="Discord Role"
                                                                             margin="normal"/>}
                                         options={selectedDServer ? selectedDServer.roles : []}
                                         onChange={(_, data) => field.onChange(data)}/>}
-                                    name="role" control={control} rules={requiredRules}/>
+                                    name="role" control={control} rules={{required: true,}}/>
                                 <Controller
-                                    render={({field}) => <TextField {...field} fullWidth multiline label={"Message"}
+                                    render={({field}) => <TextField {...field} fullWidth multiline label="Message"
                                                                     margin="normal" minRows={4}/>}
                                     name="message"
                                     control={control}/>
                                 <Controller
-                                    render={({field}) => <TextField {...field} fullWidth label={"Title"}
+                                    render={({field}) => <TextField {...field} fullWidth label="Title"
                                                                     margin="normal"/>}
                                     name="title"
                                     control={control}/>
                                 <Controller
-                                    render={({field}) => <TextField {...field} fullWidth multiline label={"Description"}
+                                    render={({field}) => <TextField {...field} fullWidth multiline label="Description"
                                                                     margin="normal" minRows={4}/>}
                                     name="description"
                                     control={control}/>

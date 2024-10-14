@@ -8,17 +8,20 @@ import {getTwitchUsersById} from "@/src/services/twitch";
 import {getTeam} from "@/src/services/teams";
 import {Avatar, Box, Button, Grid, Paper, Typography} from "@mui/material";
 import ErrorMessage from "@/src/components/ErrorMessage";
-import {redirect} from "next/navigation";
+import {useState} from "react";
 
 export default function RedeemInvitePage({params}: { params: { uuid: string } }) {
     const queryClient = useQueryClient();
+
+    const [redeemed, setRedeemed] = useState<boolean>(false);
 
     const {
         data,
         error,
         isLoading
     }: UseQueryResult<TeamInvite, AxiosError> = useQuery(["invites", params.uuid], () => getInvite(params.uuid as string), {
-        enabled: !!params.uuid
+        enabled: !!params.uuid && !redeemed,
+        retry: !redeemed
     });
 
     const {
@@ -50,9 +53,9 @@ export default function RedeemInvitePage({params}: { params: { uuid: string } })
     const redeem = useMutation({
         mutationFn: redeemInvite,
         onSuccess: async data => {
-            await queryClient.invalidateQueries({queryKey: ['invites']})
+            setRedeemed(true);
+            await queryClient.invalidateQueries({queryKey: ['invites']});
             await queryClient.invalidateQueries({queryKey: ['invites', data.uuid]});
-            redirect("/")
         }
     });
 
@@ -67,7 +70,8 @@ export default function RedeemInvitePage({params}: { params: { uuid: string } })
                             <Typography variant={"h3"}>Login to continue</Typography>
                         </Grid>
                         <Grid item xs>
-                            <Button href={`/api/twitch/login?redirect=invites/redeem/${params.uuid}`} size={"large"}>Login</Button>
+                            <Button href={`/api/twitch/login?redirect=invites/redeem/${params.uuid}`}
+                                    size={"large"}>Login</Button>
                         </Grid>
                     </Grid>
                 </>}
@@ -80,14 +84,20 @@ export default function RedeemInvitePage({params}: { params: { uuid: string } })
                                                          src={twitch_users.data[0].profile_image_url}
                                                          sx={{width: 256, height: 256}}/>}
                             </Grid>
-                            <Grid item>
-                                <Typography variant={"h4"}>You, <b>{currentUser.name}</b>, have been invited to
-                                    join <b>{team?.name}</b>!!</Typography>
-                            </Grid>
-                            <Grid item>
-                                <Button variant={"outlined"}
-                                        onClick={() => redeem.mutate(params.uuid as string)}>Join!</Button>
-                            </Grid>
+                            {!redeemed ?
+                                <>
+                                    <Grid item>
+                                        <Typography variant={"h4"}>You, <b>{currentUser.name}</b>, have been invited to
+                                            join <b>{team?.name}</b>!!</Typography>
+                                    </Grid>
+                                    <Grid item>
+                                        <Button variant={"outlined"}
+                                                onClick={() => redeem.mutate(params.uuid as string)}>Join!</Button>
+                                    </Grid>
+                                </> : <Grid item>
+                                    <Typography variant={"h4"}>You have joined <b>{team?.name}</b>.</Typography>
+                                </Grid>
+                            }
                         </Grid>
                     </> : <>
                         <Typography variant={"h4"}>This invite is not for you, sorry!</Typography>

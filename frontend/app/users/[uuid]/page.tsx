@@ -9,10 +9,11 @@ import UserAvatar from "@/src/components/UserAvatar";
 import Link from "next/link";
 import {formatRFC7231} from 'date-fns';
 import DeleteIcon from "@mui/icons-material/Delete";
-import {redirect} from "next/navigation";
+import {useRouter} from "next/navigation";
 
 export default function UserPage({params}: { params: { uuid: string } }) {
     const queryClient = useQueryClient();
+    const router = useRouter();
 
     const {
         data,
@@ -33,7 +34,8 @@ export default function UserPage({params}: { params: { uuid: string } }) {
         onSuccess: async data => {
             await queryClient.invalidateQueries({queryKey: ['users']})
             await queryClient.invalidateQueries({queryKey: ['users', data.uuid]});
-            redirect("/")
+            router.push("/");
+            router.refresh();
         }
     });
 
