@@ -92,8 +92,6 @@ export default function InvitesPage() {
         }
     };
 
-    const requiredRules: RegisterOptions = {required: true};
-
     const getTwitchName = (users: [{id: string, display_name: string, login: string, profile_image_url: string}], invite: TeamInvite) => {
         let found_user = users.find(u => u.id === invite.user_twitch_id);
         if (found_user) {
@@ -126,7 +124,7 @@ export default function InvitesPage() {
                                     renderInput={(params) => <TextField {...params} label="Team" margin="normal" />}
                                     options={teams ? teams : []}
                                     onChange={(_, data) => field.onChange(data)} />}
-                                name="team" control={control} rules={requiredRules} />
+                                name="team" control={control} rules={{required: true,}}/>
                             <Controller
                                 render={({field}) => <TextField {...field} fullWidth label={"Twitch User"} helperText={"Check carefully that the Twitch user is correct!"} margin="normal" onChange={(event) => field.onChange(event.target.value)}  />}
                                 name="login"
