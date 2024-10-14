@@ -13,6 +13,7 @@ class OAuth2Token(SQLModel, ObjectMixin, table=True):
     user_id: uuid.UUID = Field(
         foreign_key="user.uuid",
         description="ID of user",
+        ondelete="CASCADE"
     )
     name: str = Field(
         description="Name of token OAuth provider",

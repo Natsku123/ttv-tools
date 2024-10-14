@@ -11,10 +11,10 @@ if TYPE_CHECKING:
 
 class Membership(SQLModel, LinkObjectMixin, table=True):
     team_uuid: uuid.UUID = Field(
-        description="UUID of team", foreign_key="team.uuid", primary_key=True
+        description="UUID of team", foreign_key="team.uuid", primary_key=True, ondelete="CASCADE"
     )
     user_uuid: uuid.UUID = Field(
-        description="UUID of user", foreign_key="user.uuid", primary_key=True
+        description="UUID of user", foreign_key="user.uuid", primary_key=True, ondelete="CASCADE"
     )
     is_admin: bool = Field(description="Is admin of the team", default=False)
     allowed_invites: bool = Field(

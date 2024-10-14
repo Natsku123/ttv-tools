@@ -6,7 +6,7 @@ from core.database.models import ObjectMixin
 
 
 class EventSubscription(SQLModel, ObjectMixin, table=True):
-    user_uuid: uuid.UUID = Field(foreign_key="user.uuid", description="UUID of user")
+    user_uuid: uuid.UUID = Field(foreign_key="user.uuid", description="UUID of user", ondelete="CASCADE")
     server_discord_id: int = Field(
         description="Discord ID of Server", sa_column=Column(BigInteger(), nullable=False)
     )

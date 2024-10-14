@@ -1,8 +1,10 @@
 import uuid
 
-from fastapi import APIRouter, Depends, Path, Body
+from fastapi import APIRouter, Depends, Path, Body, Request
+from starlette.responses import RedirectResponse
 from sqlmodel import Session
 
+from config import settings
 from core.database.models.readonly import TeamRead, MembershipRead, UserRead
 from core.deps import get_db, get_current_user
 from core.database.models.users import User, UserUpdate
@@ -14,7 +16,9 @@ router = APIRouter()
 
 
 @router.get("/", response_model=UserRead, tags=["users"])
-def users_root(*, current_user: User | UserRead = Depends(get_current_user)) -> UserRead:
+def users_root(
+    *, current_user: User | UserRead = Depends(get_current_user)
+) -> UserRead:
     if not current_user:
         raise not_authorized()
 
@@ -81,17 +85,18 @@ def update_user(
     return db_user
 
 
-@router.delete("/{user_uuid}", response_model=UserRead, tags=["users"])
+@router.delete("/{user_uuid}", response_model=User, tags=["users"])
 def delete_user(
+    request: Request,
     *,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     user_uuid: uuid.UUID = Path(..., description="UUID of user"),
-) -> UserRead:
+) -> User | RedirectResponse:
     if not current_user:
         raise not_authorized()
 
-    if not current_user.is_superadmin or user_uuid != current_user.uuid:
+    if not current_user.is_superadmin and user_uuid != current_user.uuid:
         raise forbidden()
 
     db_user = users.crud.get(db, user_uuid)
@@ -100,6 +105,11 @@ def delete_user(
         raise not_found("User")
 
     users.crud.remove(db, uuid=user_uuid)
+
+    # In case user deleted themselves, redirect and remove session
+    if user_uuid == current_user.uuid:
+        redirect_url = settings.SITE_HOSTNAME
+        request.session.pop("user", None)
 
     return db_user
 
