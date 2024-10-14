@@ -1,8 +1,7 @@
 'use client'
 import {Team, TeamInvite, User} from "@/src/services/types";
-import {QueryClient} from "@tanstack/query-core";
-import {dehydrate, useMutation, useQuery, useQueryClient, UseQueryResult} from "@tanstack/react-query";
-import {Controller, RegisterOptions, useForm, useWatch} from "react-hook-form";
+import {useMutation, useQuery, useQueryClient, UseQueryResult} from "@tanstack/react-query";
+import {Controller, useForm, useWatch} from "react-hook-form";
 import {AxiosError} from "axios";
 import {getCurrentUser} from "@/src/services/users";
 import {
@@ -33,7 +32,7 @@ interface FormValues {
 export default function InvitesPage() {
     const queryClient = useQueryClient();
 
-    const {control, handleSubmit, resetField} = useForm<FormValues>({mode: "onSubmit", defaultValues: {team: null, login: ""}});
+    const {control, handleSubmit} = useForm<FormValues>({mode: "onSubmit", defaultValues: {team: null, login: ""}});
 
     const twitch_login = useWatch<FormValues>({control, name: "login"});
 
@@ -55,7 +54,6 @@ export default function InvitesPage() {
 
     const {
         data: invites,
-        isLoading: invitesLoading
     }: UseQueryResult<Array<TeamInvite>, AxiosError> = useQuery(["invites"], getInvites, {
         enabled: currentUser && currentUser.is_superadmin
     });

@@ -1,6 +1,6 @@
 'use client'
 import {useMutation, useQuery, useQueryClient, UseQueryResult} from "@tanstack/react-query";
-import {Controller, RegisterOptions, useForm} from "react-hook-form";
+import {Controller, useForm} from "react-hook-form";
 import {Membership, Team, User} from "@/src/services/types";
 import {AxiosError} from "axios";
 import {getCurrentUser} from "@/src/services/users";
@@ -57,8 +57,6 @@ export default function TeamsPage() {
         create.mutate(data);
     };
 
-    const requiredRules: RegisterOptions = {required: true};
-
     return (
         <Box px={2} py={2}>
             <Grid container spacing={2}>
@@ -114,11 +112,11 @@ export default function TeamsPage() {
                         <Controller
                           render={({field}) => <TextField {...field} fullWidth label={"Name"} margin="normal" />}
                           name="name"
-                          control={control} rules={requiredRules} />
+                          control={control} rules={{required: true,}} />
                         <Controller
                           render={({field}) => <TextField {...field} fullWidth multiline label={"Description"} margin="normal" minRows={4} />}
                           name="description"
-                          control={control} rules={requiredRules} />
+                          control={control} rules={{required: true,}} />
                         <Box py={2}>
                           <Button variant={"outlined"} color={"error"} onClick={() => setCreateEnabled(false)}>Close</Button>
                           <Button variant={"contained"} color={"success"} type={"submit"} style={{marginLeft: 20}}>Create</Button>
