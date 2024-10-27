@@ -182,7 +182,7 @@ async def twitch_get(url: str, token: dict = None):
 
 @app.get("/twitch/login", tags=["oauth"], responses={302: {}})
 async def twitch_login(request: Request, redirect: str = None):
-    redirect_uri = str(settings.REDIRECT_URL) + "twitch/authorize"
+    redirect_uri = f"{settings.REDIRECT_URL}/twitch/authorize"
 
     if redirect is None:
         redirect = settings.SITE_HOSTNAME
@@ -196,7 +196,7 @@ async def twitch_login(request: Request, redirect: str = None):
 
 @app.get("/discord/login", tags=["oauth"], responses={302: {}})
 async def discord_login(request: Request, redirect: str = None):
-    redirect_uri = str(settings.REDIRECT_URL) + "discord/authorize"
+    redirect_uri = f"{settings.REDIRECT_URL}/discord/authorize"
 
     if redirect is None:
         redirect = settings.SITE_HOSTNAME
