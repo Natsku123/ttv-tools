@@ -8,7 +8,7 @@ from nextcord.ext import commands, ipc
 
 def serialize_member(member: nextcord.Member) -> dict:
     return {
-        "discord_id": member.id,
+        "discord_id": str(member.id),
         "name": member.name,
         "mention": member.mention,
         "avatar_url": member.avatar.url if member.avatar else None,
@@ -18,7 +18,7 @@ def serialize_member(member: nextcord.Member) -> dict:
 
 def serialize_channel(channel: nextcord.VoiceChannel | nextcord.TextChannel) -> dict:
     return {
-        "discord_id": channel.id,
+        "discord_id": str(channel.id),
         "name": channel.name,
         "jump_url": channel.jump_url
     }
@@ -26,7 +26,7 @@ def serialize_channel(channel: nextcord.VoiceChannel | nextcord.TextChannel) -> 
 
 def serialize_guild(guild: nextcord.Guild) -> dict:
     return {
-        "discord_id": guild.id,
+        "discord_id": str(guild.id),
         "name": guild.name,
         "icon_url": guild.icon.url if guild.icon else None,
         "description": guild.description,
@@ -38,7 +38,7 @@ def serialize_guild(guild: nextcord.Guild) -> dict:
 
 def serialize_role(role: nextcord.Role) -> dict:
     return {
-        "discord_id": role.id,
+        "discord_id": str(role.id),
         "name": role.name,
         "color": role.color.to_rgb(),
         "mention": role.mention
@@ -66,7 +66,7 @@ class IpcRoutes(commands.Cog):
         self.bot: CustomBot = bot
 
     @ipc.server.route()
-    async def send_live_notification(self, data) -> None:
+    async def send_live_notification(self, data) -> dict:
         embed = get_notification_embed(
             author_name=data.broadcaster_name,
             icon_url=data.twitch_icon,
@@ -86,9 +86,9 @@ class IpcRoutes(commands.Cog):
 
         if not channel:
             logger.error(f"Channel not found for {data.channel_discord_id}")
-            return
+            return {}
 
-        await channel.send(embed=embed)
+        await channel.send(embed=embed, content=data.notification_content)
 
     @ipc.server.route()
     async def get_all_servers(self, data) -> list[dict]:

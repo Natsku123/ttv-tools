@@ -356,8 +356,6 @@ def create_twitch_eventsub(eventsub: dict):
         },
     }
 
-    logger.info(f"Sending Twitch Event Subscription: {json.dumps(twitch_payload)}")
-
     resp = requests.post(
         f"{settings.TWITCH_API_URL}/eventsub/subscriptions",
         headers=twitch_headers,
@@ -482,6 +480,7 @@ def process_notification(message_id: str, subscription_type, data: dict):
                     broadcaster_description=eventsub.custom_description
                     if eventsub.custom_description
                     else default_description,
+                    notification_content=eventsub.message,
                     channel_discord_id=eventsub.channel_discord_id,
                     server_discord_id=eventsub.server_discord_id,
                     broadcaster_name=data.broadcaster_user_name,
