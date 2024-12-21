@@ -2,6 +2,7 @@ import json
 from base64 import b64encode, b64decode
 
 import starlette.middleware.sessions
+from pydantic import AnyHttpUrl
 
 from pydantic_core import Url
 from starlette.datastructures import MutableHeaders
@@ -12,7 +13,7 @@ from itsdangerous.exc import BadSignature
 
 class CustomEncoder(json.JSONEncoder):
     def default(self, obj):
-        if isinstance(obj, Url):
+        if isinstance(obj, Url) or isinstance(obj, AnyHttpUrl):
             return str(obj)
         # Let the base class default method raise the TypeError
         return json.JSONEncoder.default(self, obj)

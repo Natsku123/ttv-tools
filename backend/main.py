@@ -1,10 +1,12 @@
-from fastapi import FastAPI, Depends, Request, HTTPException
+from fastapi import FastAPI, Depends, Request, HTTPException, Query
 from fastapi.openapi.utils import get_openapi
 from fastapi.middleware.cors import CORSMiddleware
 
 from authlib.integrations.starlette_client import OAuth
-from authlib.integrations.base_client.errors import UnsupportedTokenTypeError, \
-    OAuthError
+from authlib.integrations.base_client.errors import (
+    UnsupportedTokenTypeError,
+    OAuthError,
+)
 from starlette.responses import RedirectResponse
 
 from sqlmodel import Session
@@ -116,8 +118,7 @@ def fetch_discord_token(
 
 
 def fetch_twitch_token(
-        current_user: User = Depends(get_current_user),
-        db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     token = (
         db.query(OAuth2Token)
@@ -148,7 +149,9 @@ def _fix_token_response(resp):
     data["scope"] = " ".join(data["scope"])
     resp.json = lambda: data
     return resp
-#.register_compliance_hook(
+
+
+# .register_compliance_hook(
 #    'access_token_response', _fix_token_response)
 
 
@@ -157,12 +160,12 @@ client = oauth.register(
     name="twitch",
     client_id=settings.TWITCH_CLIENT_ID,
     client_secret=settings.TWITCH_CLIENT_SECRET,
-    #access_token_url=f"{settings.TWITCH_ID_URL}/token",
-    #access_token_params={"client_id": settings.TWITCH_CLIENT_ID, "client_secret": settings.TWITCH_CLIENT_SECRET},
-    #access_token_params=None,
-    #authorize_url=f"{settings.TWITCH_ID_URL}/authorize",
-    #authorize_params=None,
-    #userinfo_endpoint="https://id.twitch.tv/oauth2/userinfo",
+    # access_token_url=f"{settings.TWITCH_ID_URL}/token",
+    # access_token_params={"client_id": settings.TWITCH_CLIENT_ID, "client_secret": settings.TWITCH_CLIENT_SECRET},
+    # access_token_params=None,
+    # authorize_url=f"{settings.TWITCH_ID_URL}/authorize",
+    # authorize_params=None,
+    # userinfo_endpoint="https://id.twitch.tv/oauth2/userinfo",
     server_metadata_url=f"{settings.TWITCH_ID_URL}/.well-known/openid-configuration",
     api_base_url=settings.TWITCH_API_URL,
     client_kwargs={"scope": "channel:read:subscriptions"},
@@ -173,11 +176,16 @@ client = oauth.register(
 
 async def twitch_get(url: str, token: dict = None):
     if token:
-        return await oauth.twitch.get(f"{settings.TWITCH_API_URL}/{url}", token=token,
-                                      headers={'Client-Id': settings.TWITCH_CLIENT_ID})
+        return await oauth.twitch.get(
+            f"{settings.TWITCH_API_URL}/{url}",
+            token=token,
+            headers={"Client-Id": settings.TWITCH_CLIENT_ID},
+        )
     else:
-        return await oauth.twitch.get(f"{settings.TWITCH_API_URL}/{url}",
-                                      headers={'Client-Id': settings.TWITCH_CLIENT_ID})
+        return await oauth.twitch.get(
+            f"{settings.TWITCH_API_URL}/{url}",
+            headers={"Client-Id": settings.TWITCH_CLIENT_ID},
+        )
 
 
 @app.get("/twitch/login", tags=["oauth"], responses={302: {}})
@@ -207,12 +215,18 @@ async def discord_login(request: Request, redirect: str = None):
 
 
 @app.get("/discord/unlink", tags=["discord"])
-async def discord_unlink(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def discord_unlink(
+    user: User = Depends(get_current_user), db: Session = Depends(get_db), _rsc=Query()
+):
+    if _rsc:
+        raise HTTPException(status_code=400, detail="RSC not supported")
+
     if not user:
         raise not_authorized()
 
-    token_obj = db.query(OAuth2Token).filter_by(user_id=user.uuid,
-                                                name="discord").first()
+    token_obj = (
+        db.query(OAuth2Token).filter_by(user_id=user.uuid, name="discord").first()
+    )
 
     if token_obj:
         db.delete(token_obj)
@@ -227,11 +241,16 @@ async def discord_unlink(user: User = Depends(get_current_user), db: Session = D
 
 @app.get("/discord/addbot", tags=["discord"])
 async def discord_addbot():
-    return RedirectResponse(url=f"https://discord.com/api/oauth2/authorize?client_id={settings.DISCORD_CLIENT_ID}&permissions=150528&scope=bot")
+    return RedirectResponse(
+        url=f"https://discord.com/api/oauth2/authorize?client_id={settings.DISCORD_CLIENT_ID}&permissions=150528&scope=bot"
+    )
 
 
 @app.get("/logout", tags=["oauth"], responses={307: {}})
-async def logout(request: Request):
+async def logout(request: Request, _rsc=Query()):
+    if _rsc:
+        raise HTTPException(status_code=400, detail="RSC not supported")
+
     redirect_url = settings.SITE_HOSTNAME
     request.session.pop("user", None)
     return RedirectResponse(url=redirect_url)
@@ -265,7 +284,7 @@ async def twitch_authorize(request: Request, db: Session = Depends(get_db)):
     except OAuthError as e:
         raise HTTPException(status_code=500, detail=f"{e.error}")
 
-#    user = token.get("userinfo")
+    #    user = token.get("userinfo")
 
     try:
         resp = await twitch_get("users", token)
@@ -288,7 +307,9 @@ async def twitch_authorize(request: Request, db: Session = Depends(get_db)):
             icon_url=profile.get("profile_image_url"),
             offline_image_url=profile.get("offline_image_url"),
             description=profile.get("description"),
-            is_superadmin=(profile.get("id") and profile.get("id") == settings.OWNER_TWITCH_ID)
+            is_superadmin=(
+                profile.get("id") and profile.get("id") == settings.OWNER_TWITCH_ID
+            ),
         )
 
         db.add(user)
@@ -297,7 +318,9 @@ async def twitch_authorize(request: Request, db: Session = Depends(get_db)):
 
     if token:
         # Update token
-        token_obj = db.query(OAuth2Token).filter_by(user_id=user.uuid, name="twitch").first()
+        token_obj = (
+            db.query(OAuth2Token).filter_by(user_id=user.uuid, name="twitch").first()
+        )
         if token_obj is None:
             token_obj = OAuth2Token(
                 user_id=user.uuid,
@@ -333,7 +356,11 @@ async def twitch_authorize(request: Request, db: Session = Depends(get_db)):
     tags=["oauth"],
     responses={400: {"description": "Unsupported Token-Type"}},
 )
-async def discord_authorize(request: Request, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+async def discord_authorize(
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
     if not user:
         raise not_authorized()
 
@@ -361,7 +388,9 @@ async def discord_authorize(request: Request, db: Session = Depends(get_db), use
 
     if token:
         # Update token
-        token_obj = db.query(OAuth2Token).filter_by(user_id=user.uuid, name="discord").first()
+        token_obj = (
+            db.query(OAuth2Token).filter_by(user_id=user.uuid, name="discord").first()
+        )
         if token_obj is None:
             token_obj = OAuth2Token(
                 user_id=user.uuid,

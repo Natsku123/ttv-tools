@@ -4,7 +4,7 @@ import {forwardRef} from "react";
 
 const LinkBehaviour = forwardRef(function LinkBehaviour(props, ref) {
     // @ts-ignore
-    return <NextLink ref={ref} {...props} prefetch={!(props.href && (props.href.includes("login") || props.href.includes("logout") || props.href.includes("unlink") || props.href.includes("addbot")))} />;
+    return <NextLink ref={ref} {...props} prefetch={!(props.href && (props.href.includes("api")))} />;
 });
 
 const themeOptions: ThemeOptions = {

@@ -414,12 +414,12 @@ def create_twitch_eventsub(eventsub: dict):
                 "secret": settings.TWITCH_WEBHOOK_SECRET
             }
         }
-    ).json()
+    )
 
     if resp.status_code >= 400:
         raise Exception(f"Invalid response from Twitch {resp.status_code=} {resp.text}")
 
-    eventsub_crud.update_twitch_id(db_session, db_obj=eventsub, twitch_id=resp["data"][0]["id"])
+    eventsub_crud.update_twitch_id(db_session, db_obj=eventsub, twitch_id=resp.json()["data"][0]["id"])
 
 
 @app.task(base=SqlAlchemyTask)
