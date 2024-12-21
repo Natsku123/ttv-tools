@@ -148,7 +148,7 @@ def redeem_invite(
     if not db_invite:
         raise not_found("Invite")
 
-    if not int(db_invite.user_twitch_id) == current_user.twitch_id:
+    if not db_invite.user_twitch_id == current_user.twitch_id:
         raise forbidden()
 
     team = teams.crud.get(db, db_invite.team_uuid)
