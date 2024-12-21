@@ -1,3 +1,4 @@
+import json
 import os
 import asyncio
 import uuid
@@ -9,6 +10,8 @@ from celery.schedules import crontab
 
 from sqlmodel import Session, select
 from sqlalchemy.orm import scoped_session
+
+from celery.utils.log import get_task_logger
 
 from config import settings
 from core.database.models.twitch import *
@@ -29,29 +32,36 @@ app.conf.result_backend = os.environ.get("CELERY_RESULT_BACKEND", "redis://redis
 TWITCH_MESSAGE_ID_SET_KEY = "twitchmessageids"
 
 db_session = scoped_session(SessionLocal)
+logger = get_task_logger(__name__)
 
 
 class SqlAlchemyTask(Task):
-    """An abstract Celery Task that ensures that the connection the the
+    """An abstract Celery Task that ensures that the connection the
     database is closed on task completion"""
+
     abstract = True
 
     def after_return(self, status, retval, task_id, args, kwargs, einfo):
         db_session.remove()
 
+
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
     # Update all users twice a day
     sender.add_periodic_task(
-        crontab(hour="6,18"),
+        crontab(hour="6,18", minute="0"),
         update_users.s(update_all=True),
     )
 
 
 @app.task(base=SqlAlchemyTask)
-def update_users(update_all: bool = False, token: str = None,
-                 user_uuids: list[uuid.UUID] = None, twitch_ids: list[str] = None,
-                 discord_ids: list[str] = None):
+def update_users(
+    update_all: bool = False,
+    token: str = None,
+    user_uuids: list[uuid.UUID] = None,
+    twitch_ids: list[str] = None,
+    discord_ids: list[str] = None,
+):
     if not user_uuids:
         user_uuids = []
     if not twitch_ids:
@@ -69,10 +79,12 @@ def update_users(update_all: bool = False, token: str = None,
 
     if not update_all:
         users_by_uuid = [user_crud.get(db_session, x) for x in user_uuids]
-        users_by_twitch = [user_crud.get_by_twitch_id(db_session, x) for x in
-                           twitch_ids]
-        users_by_discord = [user_crud.get_by_discord_id(db_session, x) for x in
-                            discord_ids]
+        users_by_twitch = [
+            user_crud.get_by_twitch_id(db_session, x) for x in twitch_ids
+        ]
+        users_by_discord = [
+            user_crud.get_by_discord_id(db_session, x) for x in discord_ids
+        ]
 
         users = users_by_uuid + users_by_twitch + users_by_discord
     else:
@@ -84,9 +96,8 @@ def update_users(update_all: bool = False, token: str = None,
         user_data = requests.get(
             f"{settings.TWITCH_API_URL}/users",
             headers=twitch_headers,
-            params={
-                "id": users_twitch_ids
-            }).json()
+            params={"id": users_twitch_ids},
+        ).json()
 
         if "data" not in user_data:
             return user_data
@@ -95,13 +106,15 @@ def update_users(update_all: bool = False, token: str = None,
             user = user_crud.get_by_twitch_id(db_session, ud["id"])
 
             if user:
-                user_update = UserUpdate(**{
-                    "name": ud["display_name"],
-                    "login_name": ud["login"],
-                    "icon_url": ud["profile_image_url"],
-                    "offline_image_url": ud["offline_image_url"],
-                    "description": ud["description"]
-                })
+                user_update = UserUpdate(
+                    **{
+                        "name": ud["display_name"],
+                        "login_name": ud["login"],
+                        "icon_url": ud["profile_image_url"],
+                        "offline_image_url": ud["offline_image_url"],
+                        "description": ud["description"],
+                    }
+                )
 
                 user_crud.update(db_session, db_obj=user, obj_in=user_update)
 
@@ -111,105 +124,59 @@ def get_event_condition(session: Session, e: EventSubscription) -> dict:
 
     match e.event:
         case "channel.update":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.follow":
             return {
                 "broadcaster_user_id": user.twitch_id,
-                "moderator_user_id": user.twitch_id
+                "moderator_user_id": user.twitch_id,
             }
         case "channel.subscribe":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.subscription.end":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.subscription.gift":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.subscription.message":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.cheer":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.raid":
             # TODO add from_broadcaster_user_id also?
-            return {
-                "to_broadcaster_user_id": user.twitch_id
-            }
+            return {"to_broadcaster_user_id": user.twitch_id}
         case "channel.ban":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.unban":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.moderator.add":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.moderator.remove":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.channel_points_custom_reward.add":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.channel_points_custom_reward.update":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.channel_points_custom_reward.remove":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.channel_points_custom_reward_redemption.add":
             # TODO reward id check!
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.channel_points_custom_reward_redemption.update":
             # TODO reward id check!
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.poll.begin":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.poll.progress":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.poll.end":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.prediction.begin":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.prediction.progress":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.prediction.lock":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.prediction.end":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.charity_campaign.donate":
             # TODO
             return {}
@@ -229,29 +196,17 @@ def get_event_condition(session: Session, e: EventSubscription) -> dict:
             # TODO
             return {}
         case "channel.goal.begin":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.goal.progress":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.goal.end":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.hype_train.begin":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.hype_train.progress":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.hype_train.end":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "channel.shield_mode.begin":
             # TODO
             return {}
@@ -265,25 +220,15 @@ def get_event_condition(session: Session, e: EventSubscription) -> dict:
             # TODO
             return {}
         case "stream.online":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "stream.offline":
-            return {
-                "broadcaster_user_id": user.twitch_id
-            }
+            return {"broadcaster_user_id": user.twitch_id}
         case "user.authorization.grant":
-            return {
-                "client_id": settings.TWITCH_CLIENT_ID
-            }
+            return {"client_id": settings.TWITCH_CLIENT_ID}
         case "user.authorization.revoke":
-            return {
-                "client_id": settings.TWITCH_CLIENT_ID
-            }
+            return {"client_id": settings.TWITCH_CLIENT_ID}
         case "user.update":
-            return {
-                "user_id": user.twitch_id
-            }
+            return {"user_id": user.twitch_id}
 
 
 def get_event_version(e: EventSubscription) -> int:
@@ -382,8 +327,7 @@ def get_event_version(e: EventSubscription) -> int:
 
 def ipc_request(loop, *args, **kwargs):
     ipc_client = Client(
-        host=settings.IPC_HOST, port=settings.IPC_PORT,
-        secret_key=settings.IPC_SECRET
+        host=settings.IPC_HOST, port=settings.IPC_PORT, secret_key=settings.IPC_SECRET
     )
     loop.run_until_complete(ipc_client.request(*args, **kwargs))
     loop.run_until_complete(ipc_client.close())
@@ -401,25 +345,31 @@ def create_twitch_eventsub(eventsub: dict):
         "Content-Type": "application/json",
     }
 
+    twitch_payload = {
+        "type": eventsub.event,
+        "version": get_event_version(eventsub),
+        "condition": get_event_condition(db_session, eventsub),
+        "transport": {
+            "method": "webhook",
+            "callback": f"{settings.API_HOSTNAME}/twitch/event-sub/callback",
+            "secret": settings.TWITCH_WEBHOOK_SECRET,
+        },
+    }
+
+    logger.info(f"Sending Twitch Event Subscription: {json.dumps(twitch_payload)}")
+
     resp = requests.post(
         f"{settings.TWITCH_API_URL}/eventsub/subscriptions",
         headers=twitch_headers,
-        json={
-            "type": eventsub.event,
-            "version": get_event_version(eventsub),
-            "condition": get_event_condition(db_session, eventsub),
-            "transport": {
-                "method": "webhook",
-                "callback": f"{settings.API_HOSTNAME}/twitch/event-sub/callback",
-                "secret": settings.TWITCH_WEBHOOK_SECRET
-            }
-        }
+        json=twitch_payload,
     )
 
     if resp.status_code >= 400:
         raise Exception(f"Invalid response from Twitch {resp.status_code=} {resp.text}")
 
-    eventsub_crud.update_twitch_id(db_session, db_obj=eventsub, twitch_id=resp.json()["data"][0]["id"])
+    eventsub_crud.update_twitch_id(
+        db_session, db_obj=eventsub, twitch_id=resp.json()["data"][0]["id"]
+    )
 
 
 @app.task(base=SqlAlchemyTask)
@@ -465,11 +415,13 @@ def process_notification(message_id: str, subscription_type, data: dict):
     if user:
         sent = []
         if isinstance(data, StreamOnlineEvent):
-            eventsubs = eventsub_crud.get_multi_by_user_uuid_and_event(db_session,
-                                                                       user.uuid,
-                                                                       "stream.online")
-            sent += [f"{user.name} =[stream.online]=> {x.channel_discord_id}" for x
-                     in eventsubs]
+            eventsubs = eventsub_crud.get_multi_by_user_uuid_and_event(
+                db_session, user.uuid, "stream.online"
+            )
+            sent += [
+                f"{user.name} =[stream.online]=> {x.channel_discord_id}"
+                for x in eventsubs
+            ]
 
             token = get_twitch_access_token()
 
@@ -478,7 +430,7 @@ def process_notification(message_id: str, subscription_type, data: dict):
                 "Client-Id": settings.TWITCH_CLIENT_ID,
             }
 
-            #channel_info = requests.get(
+            # channel_info = requests.get(
             #    f"{settings.TWITCH_API_URL}/channels",
             #    headers=twitch_headers,
             #    params={
@@ -488,17 +440,14 @@ def process_notification(message_id: str, subscription_type, data: dict):
             streams = requests.get(
                 f"{settings.TWITCH_API_URL}/streams",
                 headers=twitch_headers,
-                params={
-                    "user_id": user.twitch_id,
-                    "type": "live"
-                }
+                params={"user_id": user.twitch_id, "type": "live"},
             ).json()
 
-            #if isinstance(channel_info, list) and len(channel_info) > 0:
+            # if isinstance(channel_info, list) and len(channel_info) > 0:
             #    default_title = channel_info[0]["title"]
             #    game = channel_info[0]["game_name"]
             #    tags = channel_info[0]["tags"]
-            #else:
+            # else:
             #    default_title = "Hey I'm live!"
             #    game = None
             #    tags = None
@@ -510,7 +459,9 @@ def process_notification(message_id: str, subscription_type, data: dict):
                 tags = streams["data"][0]["tags"]
                 viewers = streams["data"][0]["viewer_count"]
                 started = streams["data"][0]["started_at"]
-                thumbnail = streams["data"][0]["thumbnail_url"].format(width=1280//2, height=720//2)
+                thumbnail = streams["data"][0]["thumbnail_url"].format(
+                    width=1280 // 2, height=720 // 2
+                )
                 is_mature = streams["data"][0]["is_mature"]
             else:
                 default_title = "Hey I'm live!"
@@ -525,8 +476,12 @@ def process_notification(message_id: str, subscription_type, data: dict):
                 ipc_request(
                     loop,
                     "send_live_notification",
-                    broadcaster_title=eventsub.custom_title if eventsub.custom_title else default_title,
-                    broadcaster_description=eventsub.custom_description if eventsub.custom_description else default_description,
+                    broadcaster_title=eventsub.custom_title
+                    if eventsub.custom_title
+                    else default_title,
+                    broadcaster_description=eventsub.custom_description
+                    if eventsub.custom_description
+                    else default_description,
                     channel_discord_id=eventsub.channel_discord_id,
                     server_discord_id=eventsub.server_discord_id,
                     broadcaster_name=data.broadcaster_user_name,
@@ -537,7 +492,7 @@ def process_notification(message_id: str, subscription_type, data: dict):
                     twitch_viewers=viewers,
                     twitch_started=started,
                     twitch_thumbnail=thumbnail,
-                    twitch_is_mature=is_mature
+                    twitch_is_mature=is_mature,
                 )
         else:
             return f"Unknown type for: {data.json()}"
