@@ -493,6 +493,155 @@ def process_notification(message_id: str, subscription_type, data: dict):
                     twitch_thumbnail=thumbnail,
                     twitch_is_mature=is_mature,
                 )
+        elif isinstance(data, ChannelSubscribeEvent):
+            eventsubs = eventsub_crud.get_multi_by_user_uuid_and_event(
+                db_session, user.uuid, "channel.subscribe"
+            )
+            sent += [
+                f"{user.name} =[channel.subscribe]=> {x.channel_discord_id}"
+                for x in eventsubs
+            ]
+
+            for eventsub in eventsubs:
+                ipc_request(
+                    loop,
+                    "send_new_subscription_notification",
+                    notification_content=eventsub.message,
+                    channel_discord_id=eventsub.channel_discord_id,
+                    server_discord_id=eventsub.server_discord_id,
+                    broadcaster_name=data.broadcaster_user_name,
+                    twitch_icon=user.icon_url,
+                    twitch_url=f"https://twitch.tv/{data.broadcaster_user_login}",
+                    twitch_user_name=data.user_name,
+                    twitch_tier=data.tier,
+                    twitch_is_gift=data.is_gift,
+                )
+        elif isinstance(data, ChannelSubscriptionMessageEvent):
+            eventsubs = eventsub_crud.get_multi_by_user_uuid_and_event(
+                db_session, user.uuid, "channel.subscription.message"
+            )
+            sent += [
+                f"{user.name} =[channel.subscription.message]=> {x.channel_discord_id}"
+                for x in eventsubs
+            ]
+
+            for eventsub in eventsubs:
+                ipc_request(
+                    loop,
+                    "send_resubscription_notification",
+                    notification_content=eventsub.message,
+                    channel_discord_id=eventsub.channel_discord_id,
+                    server_discord_id=eventsub.server_discord_id,
+                    broadcaster_name=data.broadcaster_user_name,
+                    twitch_icon=user.icon_url,
+                    twitch_url=f"https://twitch.tv/{data.broadcaster_user_login}",
+                    twitch_user_name=data.user_name,
+                    twitch_tier=data.tier,
+                    twitch_is_gift=data.is_gift,
+                    twitch_message_text=data.message.text,
+                    twitch_message_emotes=data.message.emotes,
+                    twitch_cumulative_months=data.cumulative_months,
+                    twitch_streak_months=data.streak_months,
+                    twitch_duration_months=data.duration_months,
+                )
+        elif isinstance(data, ChannelSubscriptionGiftEvent):
+            eventsubs = eventsub_crud.get_multi_by_user_uuid_and_event(
+                db_session, user.uuid, "channel.subscription.gift"
+            )
+            sent += [
+                f"{user.name} =[channel.subscription.gift]=> {x.channel_discord_id}"
+                for x in eventsubs
+            ]
+
+            for eventsub in eventsubs:
+                ipc_request(
+                    loop,
+                    "send_gift_subscription_notification",
+                    notification_content=eventsub.message,
+                    channel_discord_id=eventsub.channel_discord_id,
+                    server_discord_id=eventsub.server_discord_id,
+                    broadcaster_name=data.broadcaster_user_name,
+                    twitch_icon=user.icon_url,
+                    twitch_url=f"https://twitch.tv/{data.broadcaster_user_login}",
+                    twitch_user_name=data.user_name,
+                    twitch_tier=data.tier,
+                    twitch_total=data.total,
+                    twitch_cumulative_total=data.cumulative_total,
+                    twitch_is_anonymous=data.is_anonymous
+                )
+        elif isinstance(data, ChannelCheerEvent):
+            eventsubs = eventsub_crud.get_multi_by_user_uuid_and_event(
+                db_session, user.uuid, "channel.cheer"
+            )
+            sent += [
+                f"{user.name} =[channel.cheer]=> {x.channel_discord_id}"
+                for x in eventsubs
+            ]
+
+            for eventsub in eventsubs:
+                ipc_request(
+                    loop,
+                    "send_cheer_notification",
+                    notification_content=eventsub.message,
+                    channel_discord_id=eventsub.channel_discord_id,
+                    server_discord_id=eventsub.server_discord_id,
+                    broadcaster_name=data.broadcaster_user_name,
+                    twitch_icon=user.icon_url,
+                    twitch_url=f"https://twitch.tv/{data.broadcaster_user_login}",
+                    twitch_user_name=data.user_name,
+                    twitch_message=data.message,
+                    twitch_bits=data.bits
+                )
+        elif isinstance(data, ChannelRaidEvent):
+            eventsubs = eventsub_crud.get_multi_by_user_uuid_and_event(
+                db_session, user.uuid, "channel.raid"
+            )
+            sent += [
+                f"{user.name} =[channel.raid]=> {x.channel_discord_id}"
+                for x in eventsubs
+            ]
+
+            for eventsub in eventsubs:
+                ipc_request(
+                    loop,
+                    "send_raid_notification",
+                    notification_content=eventsub.message,
+                    channel_discord_id=eventsub.channel_discord_id,
+                    server_discord_id=eventsub.server_discord_id,
+                    broadcaster_name=data.to_broadcaster_user_name,
+                    twitch_icon=user.icon_url,
+                    twitch_url=f"https://twitch.tv/{data.to_broadcaster_user_login}",
+                    twitch_user_name=data.from_broadcaster_user_name,
+                    twitch_viewers=data.viewers
+                )
+        elif isinstance(data, HypeTrainEndEvent):
+            eventsubs = eventsub_crud.get_multi_by_user_uuid_and_event(
+                db_session, user.uuid, "channel.hype_train.end"
+            )
+            sent += [
+                f"{user.name} =[channel.hype_train.end]=> {x.channel_discord_id}"
+                for x in eventsubs
+            ]
+
+            for eventsub in eventsubs:
+                ipc_request(
+                    loop,
+                    "send_hype_train_end_notification",
+                    notification_content=eventsub.message,
+                    channel_discord_id=eventsub.channel_discord_id,
+                    server_discord_id=eventsub.server_discord_id,
+                    broadcaster_name=data.broadcaster_user_name,
+                    twitch_icon=user.icon_url,
+                    twitch_url=f"https://twitch.tv/{data.broadcaster_user_login}",
+                    twitch_user_name=data.from_broadcaster_user_name,
+                    twitch_level=data.level,
+                    twitch_total=data.total,
+                    twitch_top_contributions=[x.dict() for x in data.top_contributions],
+                    twitch_started_at=data.started_at,
+                    twitch_ended_at=data.ended_at,
+                    twitch_cooldown_ends_at=data.cooldown_ends_at,
+                    twitch_golden_kappa=data.is_golden_kappa_train
+                )
         else:
             return f"Unknown type for: {data.json()}"
 

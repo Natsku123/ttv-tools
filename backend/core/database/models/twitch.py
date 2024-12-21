@@ -29,7 +29,7 @@ class ChannelSubscribeEvent(TwitchEvent):
     user_login: str
     user_name: str
     tier: str
-    is_gift: str
+    is_gift: bool
 
 
 class ChannelCheerEvent(TwitchEvent):
@@ -72,6 +72,7 @@ class ChannelRaidEvent(BaseModel):
     to_broadcaster_user_id: str
     to_broadcaster_user_login: str
     to_broadcaster_user_name: str
+    viewers: int
 
 
 class ChannelModeratorAddEvent(TwitchEvent):
@@ -399,7 +400,7 @@ class HypeTrainEndEvent(TwitchEvent):
     id: str
     level: int
     total: int
-    top_contributions: TwitchContributions
+    top_contributions: list[TwitchContributions]
     started_at: datetime.datetime
     ended_at: datetime.datetime
     cooldown_ends_at: datetime.datetime

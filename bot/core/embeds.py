@@ -31,7 +31,7 @@ def get_notification_embed(
     if started:
         embed.add_field(
             name="Started",
-            value=f"<t:{datetime.datetime.fromisoformat(started[:-1] + '+00:00').timestamp()}:f>",
+            value=f"<t:{int(datetime.datetime.fromisoformat(started[:-1] + '+00:00').timestamp())}:f>",
         )
 
     if thumbnail:
@@ -42,6 +42,21 @@ def get_notification_embed(
 
     if tags and len(tags) > 0:
         embed.add_field(name="Tags", value=", ".join(tags))
+
+    embed.timestamp = datetime.datetime.now(datetime.UTC)
+
+    return embed
+
+
+def get_base_embed(
+    *,
+    author_name: str,
+    icon_url: str,
+    url: str,
+) -> Embed:
+    embed = Embed(colour=nextcord.Color.from_rgb(145, 70, 255))
+
+    embed.set_author(name=author_name, icon_url=icon_url, url=url)
 
     embed.timestamp = datetime.datetime.now(datetime.UTC)
 
