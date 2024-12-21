@@ -28,11 +28,11 @@ class MembershipRead(SQLModel, LinkObjectMixin):
 
 
 class UserRead(SQLModel, ObjectMixin):
-    discord_id: int | None = Field(
+    discord_id: str | None = Field(
         None,
         description="ID on discord",
     )
-    twitch_id: int = Field(
+    twitch_id: str = Field(
         description="ID on twitch",
     )
     name: str = Field(

@@ -4,14 +4,14 @@ from core.database.models import ObjectMixin
 
 
 class Server(SQLModel, ObjectMixin, table=True):
-    discord_id: int = Field(
+    discord_id: str = Field(
         description="ID on discord",
-        sa_column=Column(BigInteger(), unique=True, nullable=False),
+        sa_column=Column(String(), unique=True, nullable=False),
     )
-    discord_channel_id: int | None = Field(
+    discord_channel_id: str | None = Field(
         None,
         description="ID of subscription channel on discord",
-        sa_column=Column(BigInteger(), unique=False, nullable=True),
+        sa_column=Column(String(), unique=False, nullable=True),
     )
 
     class Config:
@@ -20,8 +20,8 @@ class Server(SQLModel, ObjectMixin, table=True):
 
 
 class ServerCreate(SQLModel):
-    discord_id: int = Field(description="ID on discord")
-    discord_channel_id: int | None = Field(
+    discord_id: str = Field(description="ID on discord")
+    discord_channel_id: str | None = Field(
         None, description="ID of subscription channel on discord"
     )
 
@@ -31,8 +31,8 @@ class ServerCreate(SQLModel):
 
 
 class ServerUpdate(SQLModel):
-    discord_id: int | None = Field(None, description="ID on discord")
-    discord_channel_id: int | None = Field(
+    discord_id: str | None = Field(None, description="ID on discord")
+    discord_channel_id: str | None = Field(
         None, description="ID of subscription channel on discord"
     )
 

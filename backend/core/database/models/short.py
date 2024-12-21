@@ -13,11 +13,11 @@ class TeamShort(SQLModel, ObjectMixin):
 
 
 class UserShort(SQLModel, ObjectMixin):
-    discord_id: int = Field(
+    discord_id: str = Field(
         None,
         description="ID on discord",
     )
-    twitch_id: int = Field(
+    twitch_id: str = Field(
         description="ID on twitch",
     )
     name: str = Field(

@@ -5,24 +5,20 @@ from nextcord import Embed
 
 
 def get_notification_embed(
-        *,
-        author_name: str,
-        icon_url: str,
-        url: str,
-        game: str | None = None,
-        tags: list[str] | None = None,
-        viewers: int | None,
-        started: str | None,
-        thumbnail: str | None,
-        is_mature: bool | None
+    *,
+    author_name: str,
+    icon_url: str,
+    url: str,
+    game: str | None = None,
+    tags: list[str] | None = None,
+    viewers: int | None,
+    started: str | None,
+    thumbnail: str | None,
+    is_mature: bool | None,
 ) -> Embed:
     embed = Embed(colour=nextcord.Color.from_rgb(145, 70, 255))
 
-    embed.set_author(
-        name=author_name,
-        icon_url=icon_url,
-        url=url
-    )
+    embed.set_author(name=author_name, icon_url=icon_url, url=url)
 
     embed.url = url
 
@@ -33,7 +29,10 @@ def get_notification_embed(
         embed.add_field(name="Viewers", value=viewers)
 
     if started:
-        embed.add_field(name="Started", value=started)
+        embed.add_field(
+            name="Started",
+            value=f"<t:{datetime.datetime.fromisoformat(started[:-1] + '+00:00').timestamp()}:f>",
+        )
 
     if thumbnail:
         embed.set_image(thumbnail)
@@ -44,7 +43,6 @@ def get_notification_embed(
     if tags and len(tags) > 0:
         embed.add_field(name="Tags", value=", ".join(tags))
 
-    embed.timestamp = datetime.datetime.utcnow()
+    embed.timestamp = datetime.datetime.now(datetime.UTC)
 
     return embed
-

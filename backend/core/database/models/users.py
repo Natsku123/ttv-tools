@@ -12,14 +12,14 @@ if typing.TYPE_CHECKING:
 
 
 class User(SQLModel, ObjectMixin, table=True):
-    discord_id: int | None = Field(
+    discord_id: str | None = Field(
         None,
         description="ID on discord",
-        sa_column=Column(BigInteger(), unique=True, nullable=True),
+        sa_column=Column(String(), unique=True, nullable=True),
     )
-    twitch_id: int = Field(
+    twitch_id: str = Field(
         description="ID on twitch",
-        sa_column=Column(BigInteger(), unique=True, nullable=False),
+        sa_column=Column(String(), unique=True, nullable=False),
     )
     name: str = Field(
         sa_column=Column(String(64), nullable=False),
@@ -49,8 +49,8 @@ class User(SQLModel, ObjectMixin, table=True):
 
 
 class UserCreate(SQLModel):
-    discord_id: int | None = Field(None, description="ID on discord")
-    twitch_id: int = Field(description="ID on twitch")
+    discord_id: str | None = Field(None, description="ID on discord")
+    twitch_id: str = Field(description="ID on twitch")
     name: str = Field(description="Twitch username of player")
     login_name: str = Field(description="Twitch login name")
     icon_url: str | None = Field(None, description="Twitch icon url")
@@ -63,8 +63,8 @@ class UserCreate(SQLModel):
 
 
 class UserUpdate(SQLModel):
-    discord_id: int | None = Field(None, description="ID on discord")
-    twitch_id: int | None = Field(None, description="ID on twitch")
+    discord_id: str | None = Field(None, description="ID on discord")
+    twitch_id: str | None = Field(None, description="ID on twitch")
     name: str | None = Field(None, description="Twitch username of player")
     login_name: str | None = Field(None, description="Twitch login name")
     icon_url: str | None = Field(None, description="Twitch icon url")
