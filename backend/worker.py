@@ -124,59 +124,59 @@ def get_event_condition(session: Session, e: EventSubscription) -> dict:
 
     match e.event:
         case "channel.update":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.follow":
             return {
-                "broadcaster_user_id": user.twitch_id,
-                "moderator_user_id": user.twitch_id,
+                "broadcaster_user_id": str(user.twitch_id),
+                "moderator_user_id": str(user.twitch_id),
             }
         case "channel.subscribe":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.subscription.end":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.subscription.gift":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.subscription.message":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.cheer":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.raid":
             # TODO add from_broadcaster_user_id also?
-            return {"to_broadcaster_user_id": user.twitch_id}
+            return {"to_broadcaster_user_id": str(user.twitch_id)}
         case "channel.ban":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.unban":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.moderator.add":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.moderator.remove":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.channel_points_custom_reward.add":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.channel_points_custom_reward.update":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.channel_points_custom_reward.remove":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.channel_points_custom_reward_redemption.add":
             # TODO reward id check!
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.channel_points_custom_reward_redemption.update":
             # TODO reward id check!
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.poll.begin":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.poll.progress":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.poll.end":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.prediction.begin":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.prediction.progress":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.prediction.lock":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.prediction.end":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.charity_campaign.donate":
             # TODO
             return {}
@@ -196,17 +196,17 @@ def get_event_condition(session: Session, e: EventSubscription) -> dict:
             # TODO
             return {}
         case "channel.goal.begin":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.goal.progress":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.goal.end":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.hype_train.begin":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.hype_train.progress":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.hype_train.end":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "channel.shield_mode.begin":
             # TODO
             return {}
@@ -220,15 +220,15 @@ def get_event_condition(session: Session, e: EventSubscription) -> dict:
             # TODO
             return {}
         case "stream.online":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "stream.offline":
-            return {"broadcaster_user_id": user.twitch_id}
+            return {"broadcaster_user_id": str(user.twitch_id)}
         case "user.authorization.grant":
             return {"client_id": settings.TWITCH_CLIENT_ID}
         case "user.authorization.revoke":
             return {"client_id": settings.TWITCH_CLIENT_ID}
         case "user.update":
-            return {"user_id": user.twitch_id}
+            return {"user_id": str(user.twitch_id)}
 
 
 def get_event_version(e: EventSubscription) -> int:
